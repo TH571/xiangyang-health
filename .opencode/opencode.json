@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["oh-my-opencode"],
+  "provider": {
+    "openrouter": {
+      "models": {
+        "stepfun/step-3.5-flash:free": {}
+      }
+    }
+  },
+  "model": "openrouter/stepfun/step-3.5-flash:free",
+  "small_model": "openrouter/stepfun/step-3.5-flash:free"
+}

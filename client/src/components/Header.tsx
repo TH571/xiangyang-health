@@ -1,0 +1,102 @@
+/**
+ * Header Component
+ * 固定顶部导航栏，包含 Logo 和菜单
+ * Design Philosophy: 清晰的信息架构 - 严格的排版层级和充足的空白
+ */
+
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
+
+interface HeaderProps {
+  onNavigate?: (path: string) => void;
+}
+
+const navItems = [
+  { label: "主页", href: "/" },
+  { label: "健康工大人", href: "/workers" },
+  { label: "向阳优选", href: "/selection" },
+  { label: "健康讲堂", href: "/lectures" },
+  { label: "健康前沿", href: "/frontiers" },
+  { label: "健康科普", href: "/science" },
+  { label: "关于我们", href: "/about" },
+];
+
+export function Header({ onNavigate }: HeaderProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/60 shadow-md">
+      <div className="container flex h-16 items-center justify-between">
+        {/* Logo */}
+        <div
+          className="flex items-center gap-2.5 cursor-pointer group"
+          onClick={() => onNavigate?.("/")}
+        >
+          <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 shadow-lg group-hover:shadow-orange-500/25 transition-all duration-300 group-hover:scale-105">
+            <svg
+              className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+            </svg>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-lg font-bold text-slate-800 group-hover:text-orange-600 transition-colors duration-300">
+              向阳健康
+            </span>
+            <span className="text-xs text-orange-600 font-semibold group-hover:text-orange-700 transition-colors duration-300">
+              知库
+            </span>
+          </div>
+        </div>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navItems.map(item => (
+            <button
+              key={item.href}
+              onClick={() => onNavigate?.(item.href)}
+              className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-lg transition-all duration-200 relative group"
+            >
+              {item.label}
+              <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-orange-600 group-hover:w-1/2 group-hover:left-1/4 transition-all duration-200" />
+            </button>
+          ))}
+        </nav>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden p-2.5 hover:bg-gray-100 rounded-xl transition-all duration-200 active:scale-95"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? (
+            <X className="w-6 h-6 text-slate-700" />
+          ) : (
+            <Menu className="w-6 h-6 text-slate-700" />
+          )}
+        </button>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isOpen && (
+        <div className="md:hidden border-t border-border bg-white/95 backdrop-blur-md animate-fade-in">
+          <nav className="container py-4 space-y-2">
+            {navItems.map(item => (
+              <button
+                key={item.href}
+                onClick={() => {
+                  onNavigate?.(item.href);
+                  setIsOpen(false);
+                }}
+                className="block w-full text-left px-4 py-3 text-sm font-medium text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all duration-200"
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+      )}
+    </header>
+  );
+}
