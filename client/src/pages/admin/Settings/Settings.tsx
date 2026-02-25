@@ -40,7 +40,7 @@ export function Settings() {
         const data = new FormData();
         data.append("file", file);
         try {
-            const res = await axios.post("/api/upload", data, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await axios.post("/api/upload?type=avatar", data, { headers: { Authorization: `Bearer ${token}` } });
             setAvatar(res.data.url);
             toast.success("上传成功");
         } catch (error: any) {

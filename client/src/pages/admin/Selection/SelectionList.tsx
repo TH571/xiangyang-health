@@ -137,7 +137,7 @@ export function SelectionEdit({ params }: { params?: { id?: string } }) {
         const data = new FormData();
         data.append("file", file);
         try {
-            const res = await axios.post("/api/upload", data, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await axios.post("/api/upload?type=product", data, { headers: { Authorization: `Bearer ${token}` } });
             setFormData({ ...formData, image: res.data.url });
             toast.success("上传成功");
         } catch { toast.error("上传失败"); }

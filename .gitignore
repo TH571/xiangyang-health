@@ -106,3 +106,6 @@ temp/
 *.sqlite3
 
 /generated/prisma
+
+# Uploads directory (user uploaded files)
+uploads/

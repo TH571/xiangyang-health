@@ -147,7 +147,7 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
         const data = new FormData();
         data.append("file", file);
         try {
-            const res = await axios.post("/api/upload", data, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await axios.post("/api/upload?type=news", data, { headers: { Authorization: `Bearer ${token}` } });
             setFormData({ ...formData, cover: res.data.url });
             toast.success("上传成功");
         } catch { toast.error("上传失败"); }
@@ -156,7 +156,7 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
     const handleImageUpload = async (file: File) => {
         const data = new FormData();
         data.append('file', file);
-        const res = await axios.post('/api/upload', data, {
+        const res = await axios.post('/api/upload?type=news', data, {
             headers: { Authorization: `Bearer ${token}` }
         });
         return res.data.url;

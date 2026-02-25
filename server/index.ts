@@ -8,6 +8,7 @@ import cors from "cors";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import fs from "fs";
+import sharp from "sharp";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +35,90 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const JWT_SECRET = process.env.JWT_SECRET || "xiangyang-secret-key";
+
+// 图片压缩配置
+interface ImageConfig {
+  width: number;
+  height?: number;
+  quality: number;
+  fit: 'cover' | 'inside' | 'contain' | 'fill';
+}
+
+const IMAGE_CONFIG: Record<string, ImageConfig> = {
+  avatar: {
+    width: 200,
+    height: 200,
+    quality: 80,
+    fit: 'cover',
+  },
+  news: {
+    width: 1200,
+    quality: 85,
+    fit: 'inside',
+  },
+  product: {
+    width: 800,
+    quality: 85,
+    fit: 'inside',
+  },
+  default: {
+    width: 1200,
+    quality: 85,
+    fit: 'inside',
+  },
+};
+
+// 图片压缩处理函数
+async function compressImage(
+  inputPath: string,
+  outputPath: string,
+  type: 'avatar' | 'news' | 'product' | 'default' = 'default'
+): Promise<void> {
+  const config = IMAGE_CONFIG[type];
+
+  let sharpInstance = sharp(inputPath);
+
+  // 获取图片元数据
+  const metadata = await sharpInstance.metadata();
+
+  // 根据类型处理
+  if (type === 'avatar') {
+    // 头像：固定尺寸，裁剪为正方形
+    sharpInstance = sharpInstance.resize(config.width, config.height, {
+      fit: config.fit,
+      position: 'center',
+    });
+  } else {
+    // 其他：按宽度等比缩放
+    sharpInstance = sharpInstance.resize(config.width, undefined, {
+      fit: config.fit,
+      withoutEnlargement: true, // 不放大小图片
+    });
+  }
+
+  // 根据格式选择输出
+  const format = metadata.format;
+  if (format === 'jpeg' || format === 'jpg') {
+    await sharpInstance.jpeg({ quality: config.quality, progressive: true }).toFile(outputPath);
+  } else if (format === 'png') {
+    // PNG使用压缩级别而非quality
+    await sharpInstance.png({ compressionLevel: 9, progressive: true }).toFile(outputPath);
+  } else if (format === 'webp') {
+    await sharpInstance.webp({ quality: config.quality }).toFile(outputPath);
+  } else if (format === 'gif') {
+    // GIF不压缩，直接复制
+    fs.copyFileSync(inputPath, outputPath);
+  } else {
+    // 其他格式转为jpeg
+    await sharpInstance.jpeg({ quality: config.quality, progressive: true }).toFile(outputPath);
+  }
+}
+
+// 判断是否为图片文件
+function isImageFile(filename: string): boolean {
+  const ext = path.extname(filename).toLowerCase();
+  return ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff'].includes(ext);
+}
 
 async function startServer() {
   const app = express();
@@ -97,11 +182,50 @@ async function startServer() {
     }
   };
 
-  // Upload
-  app.post("/api/upload", authenticate, upload.single("file"), (req, res) => {
+  // Upload with image compression
+  app.post("/api/upload", authenticate, upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-    // Return relative URL
-    res.json({ url: `/uploads/${req.file.filename}` });
+
+    const filePath = req.file.path;
+    const originalFilename = req.file.filename;
+    const fileExt = path.extname(originalFilename).toLowerCase();
+
+    // 如果不是图片文件，直接返回原文件
+    if (!isImageFile(originalFilename)) {
+      return res.json({ url: `/uploads/${originalFilename}` });
+    }
+
+    // 获取图片类型参数 (avatar, news, product, default)
+    const imageType = (req.query.type as 'avatar' | 'news' | 'product' | 'default') || 'default';
+
+    try {
+      // 创建临时压缩文件路径
+      const tempPath = path.join(uploadDir, `temp-${originalFilename}`);
+
+      // 压缩图片到临时文件
+      await compressImage(filePath, tempPath, imageType);
+
+      // 获取文件大小对比
+      const originalSize = fs.statSync(filePath).size;
+      const compressedSize = fs.statSync(tempPath).size;
+
+      // 如果压缩后更小，替换原文件
+      if (compressedSize < originalSize) {
+        fs.unlinkSync(filePath);
+        fs.renameSync(tempPath, filePath);
+        console.log(`Image compressed: ${originalFilename} (${(originalSize / 1024).toFixed(1)}KB → ${(compressedSize / 1024).toFixed(1)}KB)`);
+      } else {
+        // 压缩后更大，删除临时文件，保留原图
+        fs.unlinkSync(tempPath);
+        console.log(`Image kept original (compression not beneficial): ${originalFilename}`);
+      }
+
+      res.json({ url: `/uploads/${originalFilename}` });
+    } catch (error) {
+      console.error('Image compression error:', error);
+      // 压缩失败也返回原图
+      res.json({ url: `/uploads/${originalFilename}` });
+    }
   });
 
   // Categories
