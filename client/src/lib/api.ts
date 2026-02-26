@@ -112,8 +112,15 @@ uploadApi.interceptors.response.use(
 export function getImageUrl(path: string | null | undefined): string {
   if (!path) return '';
 
-  // If it's already a full URL (http/https), return as is
+  // If it's already a full URL (http/https), check if it has wrong domain
   if (path.startsWith('http://') || path.startsWith('https://')) {
+    // Replace 127.0.0.1 with the correct API base URL
+    if (path.includes('127.0.0.1') || path.includes('localhost')) {
+      // Extract the path part and rebuild with correct base URL
+      const urlObj = new URL(path);
+      const relativePath = urlObj.pathname;
+      return `${API_BASE_URL}${relativePath}`;
+    }
     return path;
   }
 
