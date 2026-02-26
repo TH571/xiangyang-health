@@ -82,10 +82,12 @@ export function ExpertList() {
                     <TableBody>
                         {experts.map(item => (
                             <TableRow key={item.id}>
-                                <TableCell>
-                                    <img src={getImageUrl(item.avatar) || "https://via.placeholder.com/40"} alt={item.name} className="w-10 h-10 rounded-full object-cover" />
+                                <TableCell className="text-center">
+                                    <img src={getImageUrl(item.avatar) || "https://via.placeholder.com/40"} alt={item.name} className="w-10 h-10 rounded-full object-cover mx-auto" />
                                 </TableCell>
-                                <TableCell className="font-medium">{item.name}</TableCell>
+                                <TableCell className="font-medium cursor-pointer hover:text-orange-600 transition-colors" onClick={() => setLocation(`/admin/experts/${item.id}`)}>
+                                    {item.name}
+                                </TableCell>
                                 <TableCell>{item.title}</TableCell>
                                 <TableCell>{item.category?.name || "未分类"}</TableCell>
                                 <TableCell>{item.unit}</TableCell>
