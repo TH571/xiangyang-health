@@ -3,7 +3,7 @@
  * 向阳优选 - 健康商品推荐
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'wouter';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -13,6 +13,7 @@ import { ArrowLeft, ShoppingCart, Heart, Star } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
 import { toast } from "sonner";
 import { ImagePlaceholder } from "@/components/Placeholder";
+import { useCachedData } from "@/hooks/useCachedData";
 
 interface Product {
   id: string;
@@ -39,42 +40,52 @@ export function SelectionPage() {
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [cart, setCart] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [prodRes, catRes] = await Promise.all([
-          api.get('/products'),
-          api.get('/categories?type=selection')
-        ]);
-
-        const loadedProducts = prodRes.data.map((item: any) => ({
-          id: String(item.id),
-          name: item.name,
-          category: item.category?.name || '其他',
-          price: item.price || '0',
-          originalPrice: undefined,
-          image: getImageUrl(item.image) || '',
-          rating: item.rating || 5.0,
-          reviews: Math.floor(Math.random() * 500) + 50,
-          description: item.introduction || '',
-          features: ['正品保证', '极速发货'], // Mock features
-          inStock: true,
-          discount: undefined,
-          url: item.url
-        }));
-
-        setProducts(loadedProducts);
-        setFilteredProducts(loadedProducts);
-
-        const categoryNames = ['全部', ...catRes.data.map((c: any) => c.name)];
-        setCategories(categoryNames);
-      } catch (error) {
-        toast.error("加载数据失败");
-        console.error(error);
-      }
-    };
-    fetchData();
+  // 使用 useCallback 包装 fetch 函数避免无限循环
+  const fetchProducts = useCallback(async () => {
+    const res = await api.get('/products');
+    return res.data;
   }, []);
+
+  const fetchCategories = useCallback(async () => {
+    const res = await api.get('/categories?type=selection');
+    return res.data;
+  }, []);
+
+  // 使用缓存 hook
+  const { data: productsRaw = [] } = useCachedData<any[]>(
+    'selection_products',
+    fetchProducts
+  );
+
+  const { data: categoriesRaw = [] } = useCachedData<any[]>(
+    'selection_categories',
+    fetchCategories
+  );
+
+  // 当数据变化时更新状态
+  useEffect(() => {
+    const loadedProducts = (productsRaw || []).map((item: any) => ({
+      id: String(item.id),
+      name: item.name,
+      category: item.category?.name || '其他',
+      price: item.price || '0',
+      originalPrice: undefined,
+      image: getImageUrl(item.image) || '',
+      rating: item.rating || 5.0,
+      reviews: Math.floor(Math.random() * 500) + 50,
+      description: item.introduction || '',
+      features: ['正品保证', '极速发货'],
+      inStock: true,
+      discount: undefined,
+      url: item.url
+    }));
+
+    setProducts(loadedProducts);
+    setFilteredProducts(loadedProducts);
+
+    const categoryNames = ['全部', ...(categoriesRaw || []).map((c: any) => c.name)];
+    setCategories(categoryNames);
+  }, [productsRaw, categoriesRaw]);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
