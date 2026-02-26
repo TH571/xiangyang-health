@@ -32,6 +32,15 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 <div className="p-6 border-b border-slate-700">
                     <h1 className="text-xl font-bold flex items-center gap-2">
                         <span className="text-orange-500">向阳</span> 后台管理
+                        <a
+                            href="/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-auto text-2xl hover:scale-110 transition-transform cursor-pointer"
+                            title="访问前端首页"
+                        >
+                            🏠
+                        </a>
                     </h1>
                 </div>
 
