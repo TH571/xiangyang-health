@@ -113,12 +113,12 @@ export function SelectionPage() {
       // 移动端：直接跳转
       window.open(product.url, '_blank');
     } else {
-      // 桌面端：显示二维码下拉框
+      // 桌面端：显示二维码下拉框（从按钮往上滑出，盖住按钮）
       const button = event.currentTarget;
       const rect = button.getBoundingClientRect();
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       setModalPosition({
-        top: rect.top + scrollTop - 320, // 在按钮上方 320px（弹窗高度）
+        top: rect.bottom + scrollTop, // 从按钮底部位置开始
         left: rect.left + rect.width / 2 - 144 // 居中 (弹窗宽度 288px / 2)
       });
       setSelectedProduct(product);
@@ -310,12 +310,14 @@ export function SelectionPage() {
             onClick={closeModal}
           />
 
-          {/* Dropdown Panel - 从按钮上方滑出 */}
+          {/* Dropdown Panel - 从按钮往上滑出，盖住按钮 */}
           <div
-            className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-72 hidden md:block animate-slide-down origin-bottom"
+            className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-72 hidden md:block origin-bottom"
             style={{
               top: `${modalPosition.top}px`,
               left: `${modalPosition.left}px`,
+              transform: 'translateY(-100%)',
+              animation: 'slideUpFromBottom 0.3s ease-out',
             }}
           >
             {/* Close button */}
@@ -337,7 +339,7 @@ export function SelectionPage() {
             {/* QR Code */}
             <div className="flex justify-center mb-3">
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(selectedProduct.url)}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(selectedProduct.url || '')}`}
                 alt="QR Code"
                 className="w-32 h-32 border border-gray-200 rounded"
               />
