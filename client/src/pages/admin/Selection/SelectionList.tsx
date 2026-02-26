@@ -16,6 +16,7 @@ import { Pencil, Trash2, Plus, ArrowLeft, Upload, Star } from "lucide-react";
 import { toast } from "sonner";
 import { api, uploadApi, getImageUrl } from "@/lib/api";
 import { useCachedData } from "@/hooks/useCachedData";
+import { SmallAvatarPlaceholder } from "@/components/Placeholder";
 
 interface Product {
     id: number;
@@ -85,7 +86,11 @@ export function SelectionList() {
                         {products?.map(item => (
                             <TableRow key={item.id}>
                                 <TableCell>
-                                    <img src={getImageUrl(item.image) || "https://via.placeholder.com/40"} alt={item.name} className="w-12 h-12 rounded object-cover border" />
+                                    {getImageUrl(item.image) ? (
+                                        <img src={getImageUrl(item.image)} alt={item.name} className="w-12 h-12 rounded object-cover border" />
+                                    ) : (
+                                        <SmallAvatarPlaceholder />
+                                    )}
                                 </TableCell>
                                 <TableCell className="font-medium">{item.name}</TableCell>
                                 <TableCell>{item.category?.name || "未分类"}</TableCell>

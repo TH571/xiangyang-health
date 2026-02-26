@@ -16,6 +16,7 @@ import { ArrowRight, Sparkles, AlertCircle } from "lucide-react";
 import { api, getImageUrl, getApiErrorMessage } from "@/lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCachedData } from "@/hooks/useCachedData";
+import { AvatarPlaceholder, ImagePlaceholder } from "@/components/Placeholder";
 
 // Interfaces based on usage
 interface User {
@@ -78,7 +79,7 @@ export default function Home() {
       id: String(e.id),
       name: e.name,
       title: e.title,
-      avatar: getImageUrl(e.avatar) || "https://via.placeholder.com/150",
+      avatar: getImageUrl(e.avatar) || '',
       description: e.achievements || e.introduction?.substring(0, 50) || "专业健康专家",
       quote: "守护每一位工大人的健康"
     }));
@@ -96,7 +97,7 @@ export default function Home() {
         id: String(n.id),
         title: n.title,
         category: category,
-        image: getImageUrl(n.cover) || "https://via.placeholder.com/300",
+        image: getImageUrl(n.cover) || '',
         date: n.date,
         excerpt: n.content?.replace(/<[^>]+>/g, '').substring(0, 100) + "...",
         content: n.content,

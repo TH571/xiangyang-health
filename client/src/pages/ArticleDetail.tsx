@@ -11,6 +11,7 @@ import { SimpleDivider } from '@/components/OrganicDivider';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Heart } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
+import { ImagePlaceholder } from '@/components/Placeholder';
 
 interface News {
   id: number;
@@ -211,11 +212,15 @@ export function ArticleDetailPage({ id }: ArticleDetailProps) {
                   className="group rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
                 >
                   <div className="relative overflow-hidden h-40 bg-gray-200">
-                    <img
-                      src={getImageUrl(relatedArticle.cover) || 'https://via.placeholder.com/300'}
-                      alt={relatedArticle.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                    {getImageUrl(relatedArticle.cover) ? (
+                      <img
+                        src={getImageUrl(relatedArticle.cover)}
+                        alt={relatedArticle.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <ImagePlaceholder width={400} height={160} />
+                    )}
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-slate-800 line-clamp-2 group-hover:text-orange-600 transition-colors">

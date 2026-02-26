@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ShoppingCart, Heart, Star } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
 import { toast } from "sonner";
+import { ImagePlaceholder } from "@/components/Placeholder";
 
 interface Product {
   id: string;
@@ -52,7 +53,7 @@ export function SelectionPage() {
           category: item.category?.name || '其他',
           price: item.price || '0',
           originalPrice: undefined,
-          image: getImageUrl(item.image) || 'https://via.placeholder.com/300',
+          image: getImageUrl(item.image) || '',
           rating: item.rating || 5.0,
           reviews: Math.floor(Math.random() * 500) + 50,
           description: item.introduction || '',
@@ -168,11 +169,15 @@ export function SelectionPage() {
               >
                 {/* Product Image */}
                 <div className="relative overflow-hidden h-48 bg-gray-200">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  {getImageUrl(product.image) ? (
+                    <img
+                      src={getImageUrl(product.image)}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <ImagePlaceholder width={300} height={192} />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
                   {/* Discount Badge */}

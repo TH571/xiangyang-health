@@ -16,6 +16,7 @@ import { Pencil, Trash2, Plus, ArrowLeft, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { api, uploadApi, getImageUrl } from "@/lib/api";
 import { useCachedData } from "@/hooks/useCachedData";
+import { SmallAvatarPlaceholder } from "@/components/Placeholder";
 
 interface Expert {
     id: number;
@@ -84,7 +85,11 @@ export function ExpertList() {
                         {experts?.map(item => (
                             <TableRow key={item.id}>
                                 <TableCell className="text-center">
-                                    <img src={getImageUrl(item.avatar) || "https://via.placeholder.com/40"} alt={item.name} className="w-10 h-10 rounded-full object-cover mx-auto" />
+                                    {getImageUrl(item.avatar) ? (
+                                        <img src={getImageUrl(item.avatar)} alt={item.name} className="w-10 h-10 rounded-full object-cover mx-auto" />
+                                    ) : (
+                                        <SmallAvatarPlaceholder />
+                                    )}
                                 </TableCell>
                                 <TableCell className="font-medium cursor-pointer hover:text-orange-600 transition-colors" onClick={() => setLocation(`/admin/experts/${item.id}`)}>
                                     {item.name}

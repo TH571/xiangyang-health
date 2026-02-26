@@ -5,6 +5,7 @@
  */
 
 import { User } from "@/lib/mockData";
+import { AvatarPlaceholder } from "./Placeholder";
 
 interface UserCardProps {
   user: User;
@@ -17,11 +18,15 @@ export function UserCard({ user }: UserCardProps) {
       <div className="relative mb-5 group">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300" />
         <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-orange-200 group-hover:ring-orange-400 ring-offset-2 ring-offset-white shadow-xl transition-all duration-300">
-          <img
-            src={user.avatar}
-            alt={user.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          />
+          {user.avatar ? (
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+          ) : (
+            <AvatarPlaceholder size={96} />
+          )}
         </div>
       </div>
 

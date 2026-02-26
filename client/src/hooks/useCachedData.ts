@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const CACHE_PREFIX = 'xiangyang_cache_';
-const CACHE_EXPIRY = 5 * 60 * 1000; // 5分钟过期
+const CACHE_EXPIRY = 30 * 60 * 1000; // 30分钟过期
 
 interface CacheData<T> {
   data: T;
@@ -10,9 +10,8 @@ interface CacheData<T> {
 
 /**
  * SessionStorage 缓存 Hook
- * - 首次加载：先显示缓存（如果有）或 loading
- * - 后台获取最新数据
- * - 数据更新后自动清除缓存
+ * - Cache-First 策略：有缓存则不请求，缓存过期才请求
+ * - 缓存时间：30分钟
  */
 export function useCachedData<T>(
   key: string,
@@ -83,7 +82,7 @@ export function useCachedData<T>(
     }
   }, [fetchFn, writeCache]);
 
-  // 初始加载
+  // 初始加载 - Cache-First 策略
   useEffect(() => {
     if (!enabled) {
       setLoading(false);
@@ -93,21 +92,21 @@ export function useCachedData<T>(
     const loadData = async () => {
       // 先读取缓存
       const cached = readCache();
+
+      // 有缓存：直接使用，不发请求
       if (cached) {
         setData(cached);
-        setLoading(false); // 先显示缓存
+        setLoading(false);
+        return;
       }
 
-      // 后台获取最新数据
+      // 无缓存：发起请求
       try {
         const freshData = await fetchFn();
         setData(freshData);
         writeCache(freshData);
       } catch (err) {
-        // 如果有缓存，即使请求失败也不显示错误
-        if (!cached) {
-          setError(err as Error);
-        }
+        setError(err as Error);
         console.error('Data fetch error:', err);
       } finally {
         setLoading(false);

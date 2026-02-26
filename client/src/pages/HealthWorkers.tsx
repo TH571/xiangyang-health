@@ -12,6 +12,7 @@ import { ArrowLeft, Star } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
 import { toast } from "sonner";
 import { useCachedData } from "@/hooks/useCachedData";
+import { AvatarPlaceholder } from "@/components/Placeholder";
 
 interface Expert {
   id: string;
@@ -65,7 +66,7 @@ export function HealthWorkersPage() {
       title: item.title,
       specialty: item.category?.name || '其他',
       bio: item.unit || '',
-      avatar: getImageUrl(item.avatar) || 'https://via.placeholder.com/150',
+      avatar: getImageUrl(item.avatar) || '',
       rating: item.score || 5.0,
       consultations: Math.floor(Math.random() * 1000) + 100,
       expertise: item.achievements ? [item.achievements] : [],
@@ -155,11 +156,15 @@ export function HealthWorkersPage() {
                 {/* Avatar */}
                 <div className="flex-shrink-0">
                   <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-100 border border-slate-100 group-hover:scale-105 transition-transform duration-300">
-                    <img
-                      src={getImageUrl(expert.avatar)}
-                      alt={expert.name}
-                      className="w-full h-full object-cover"
-                    />
+                    {getImageUrl(expert.avatar) ? (
+                      <img
+                        src={getImageUrl(expert.avatar)}
+                        alt={expert.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <AvatarPlaceholder size={96} />
+                    )}
                   </div>
                 </div>
 
@@ -226,11 +231,17 @@ export function HealthWorkersPage() {
               </button>
 
               <div className="p-8 pb-0 flex flex-col md:flex-row gap-6">
-                <img
-                  src={getImageUrl(selectedExpert.avatar)}
-                  alt={selectedExpert.name}
-                  className="w-32 h-32 rounded-full border-4 border-white shadow-lg bg-slate-50"
-                />
+                <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg bg-slate-50 overflow-hidden">
+                  {getImageUrl(selectedExpert.avatar) ? (
+                    <img
+                      src={getImageUrl(selectedExpert.avatar)}
+                      alt={selectedExpert.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <AvatarPlaceholder size={128} />
+                  )}
+                </div>
                 <div className="pt-2">
                   <h2 className="text-3xl font-bold text-slate-900 mb-2">{selectedExpert.name}</h2>
                   <div className="flex flex-wrap items-center gap-3 text-slate-600 mb-4">

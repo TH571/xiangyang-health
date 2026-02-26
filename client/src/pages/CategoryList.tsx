@@ -14,6 +14,7 @@ import { ArrowLeft, Search } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
 import { Article } from '@/lib/mockData';
 import { useCachedData } from "@/hooks/useCachedData";
+import { ImagePlaceholder } from "@/components/Placeholder";
 
 interface CategoryListProps {
   category: 'frontiers' | 'lectures' | 'science';
@@ -72,7 +73,7 @@ export function CategoryListPage({ category }: CategoryListProps) {
       id: String(n.id),
       title: n.title,
       category: category,
-      image: getImageUrl(n.cover) || "https://via.placeholder.com/300",
+      image: getImageUrl(n.cover) || '',
       date: n.date,
       excerpt: n.content?.replace(/<[^>]+>/g, '').substring(0, 100) + "...",
       content: n.content,

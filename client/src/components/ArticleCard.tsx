@@ -6,6 +6,7 @@
 
 import { Article } from "@/lib/mockData";
 import { ArrowRight } from "lucide-react";
+import { ImagePlaceholder } from "./Placeholder";
 
 interface ArticleCardProps {
   article: Article;
@@ -20,11 +21,15 @@ export function ArticleCard({ article, onClick }: ArticleCardProps) {
     >
       {/* Image Container */}
       <div className="relative overflow-hidden h-56 bg-gray-200">
-        <img
-          src={article.image}
-          alt={article.title}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-        />
+        {article.image ? (
+          <img
+            src={article.image}
+            alt={article.title}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+        ) : (
+          <ImagePlaceholder width={400} height={224} />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
         {/* Category Badge on Image */}
         <div className="absolute top-4 left-4">
