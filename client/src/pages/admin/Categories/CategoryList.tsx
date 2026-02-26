@@ -28,7 +28,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
+import { api } from "@/lib/api";
 
 interface Category {
     id: number;
@@ -46,9 +46,7 @@ export function CategoryList() {
 
     const fetchCategories = async () => {
         try {
-            const res = await axios.get("/api/categories", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get("/categories");
             setCategories(res.data);
         } catch (error) {
             toast.error("加载分类失败");
@@ -65,14 +63,10 @@ export function CategoryList() {
         e.preventDefault();
         try {
             if (currentCategory.id) {
-                await axios.put(`/api/categories/${currentCategory.id}`, currentCategory, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.put(`/categories/${currentCategory.id}`, currentCategory);
                 toast.success("更新成功");
             } else {
-                await axios.post("/api/categories", currentCategory, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.post("/categories", currentCategory);
                 toast.success("创建成功");
             }
             setIsDialogOpen(false);
@@ -86,9 +80,7 @@ export function CategoryList() {
     const handleDelete = async (id: number) => {
         if (!confirm("确定要删除这个分类吗？")) return;
         try {
-            await axios.delete(`/api/categories/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/categories/${id}`);
             toast.success("删除成功");
             fetchCategories();
         } catch (error) {

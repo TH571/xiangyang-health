@@ -5,6 +5,7 @@
  */
 
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Menu, X } from "lucide-react";
 
 interface HeaderProps {
@@ -23,6 +24,15 @@ const navItems = [
 
 export function Header({ onNavigate }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [location] = useLocation();
+
+  // Check if a nav item is active
+  const isActive = (href: string) => {
+    // Exact match for home
+    if (href === "/") return location === "/";
+    // Prefix match for other routes
+    return location.startsWith(href);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/60 shadow-md">
@@ -32,7 +42,9 @@ export function Header({ onNavigate }: HeaderProps) {
           className="flex items-center gap-2.5 cursor-pointer group"
           onClick={() => onNavigate?.("/")}
         >
-          <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 shadow-lg group-hover:shadow-orange-500/25 transition-all duration-300 group-hover:scale-105">
+          <div className={`flex items-center justify-center w-11 h-11 rounded-xl shadow-lg transition-all duration-300 group-hover:scale-105 ${
+            isActive("/") ? "bg-gradient-to-br from-orange-600 to-orange-800" : "bg-gradient-to-br from-orange-500 to-orange-700"
+          }`}>
             <svg
               className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300"
               fill="currentColor"
@@ -42,7 +54,9 @@ export function Header({ onNavigate }: HeaderProps) {
             </svg>
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold text-slate-800 group-hover:text-orange-600 transition-colors duration-300">
+            <span className={`text-lg font-bold transition-colors duration-300 ${
+              isActive("/") ? "text-orange-600" : "text-slate-800 group-hover:text-orange-600"
+            }`}>
               向阳健康
             </span>
             <span className="text-xs text-orange-600 font-semibold group-hover:text-orange-700 transition-colors duration-300">
@@ -53,16 +67,25 @@ export function Header({ onNavigate }: HeaderProps) {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-1">
-          {navItems.map(item => (
-            <button
-              key={item.href}
-              onClick={() => onNavigate?.(item.href)}
-              className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-lg transition-all duration-200 relative group"
-            >
-              {item.label}
-              <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-orange-600 group-hover:w-1/2 group-hover:left-1/4 transition-all duration-200" />
-            </button>
-          ))}
+          {navItems.map(item => {
+            const active = isActive(item.href);
+            return (
+              <button
+                key={item.href}
+                onClick={() => onNavigate?.(item.href)}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative group ${
+                  active
+                    ? "text-orange-600 bg-orange-50/90"
+                    : "text-slate-700 hover:text-orange-600 hover:bg-orange-50/80"
+                }`}
+              >
+                {item.label}
+                <span className={`absolute bottom-0 left-1/2 h-0.5 bg-orange-600 transition-all duration-200 ${
+                  active ? "w-1/2 left-1/4" : "w-0 group-hover:w-1/2 group-hover:left-1/4"
+                }`} />
+              </button>
+            );
+          })}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -82,18 +105,25 @@ export function Header({ onNavigate }: HeaderProps) {
       {isOpen && (
         <div className="md:hidden border-t border-border bg-white/95 backdrop-blur-md animate-fade-in">
           <nav className="container py-4 space-y-2">
-            {navItems.map(item => (
-              <button
-                key={item.href}
-                onClick={() => {
-                  onNavigate?.(item.href);
-                  setIsOpen(false);
-                }}
-                className="block w-full text-left px-4 py-3 text-sm font-medium text-slate-700 hover:text-orange-600 hover:bg-orange-50/80 rounded-xl transition-all duration-200"
-              >
-                {item.label}
-              </button>
-            ))}
+            {navItems.map(item => {
+              const active = isActive(item.href);
+              return (
+                <button
+                  key={item.href}
+                  onClick={() => {
+                    onNavigate?.(item.href);
+                    setIsOpen(false);
+                  }}
+                  className={`block w-full text-left px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                    active
+                      ? "text-orange-600 bg-orange-50/90"
+                      : "text-slate-700 hover:text-orange-600 hover:bg-orange-50/80"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </nav>
         </div>
       )}

@@ -14,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload, Star } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
+import { api, uploadApi } from "@/lib/api";
 
 interface Product {
     id: number;
@@ -42,7 +42,7 @@ export function SelectionList() {
 
     const fetchProducts = async () => {
         try {
-            const res = await axios.get("/api/products");
+            const res = await api.get("/products");
             setProducts(res.data);
         } catch { toast.error("加载产品失败"); }
         finally { setLoading(false); }
@@ -53,7 +53,7 @@ export function SelectionList() {
     const handleDelete = async (id: number) => {
         if (!confirm("确定删除?")) return;
         try {
-            await axios.delete(`/api/products/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await api.delete(`/products/${id}`);
             toast.success("删除成功");
             fetchProducts();
         } catch { toast.error("删除失败"); }
@@ -121,10 +121,10 @@ export function SelectionEdit({ params }: { params?: { id?: string } }) {
 
     useEffect(() => {
         const loadData = async () => {
-            const catRes = await axios.get("/api/categories?type=selection", { headers: { Authorization: `Bearer ${token}` } });
+            const catRes = await api.get("/categories?type=selection");
             setCategories(catRes.data);
             if (id) {
-                const res = await axios.get(`/api/products/${id}`);
+                const res = await api.get(`/products/${id}`);
                 setFormData(res.data);
             }
         };
@@ -137,7 +137,7 @@ export function SelectionEdit({ params }: { params?: { id?: string } }) {
         const data = new FormData();
         data.append("file", file);
         try {
-            const res = await axios.post("/api/upload?type=product", data, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await uploadApi.post("/upload?type=product", data);
             setFormData({ ...formData, image: res.data.url });
             toast.success("上传成功");
         } catch { toast.error("上传失败"); }
@@ -157,10 +157,10 @@ export function SelectionEdit({ params }: { params?: { id?: string } }) {
                 categoryId: Number(formData.categoryId),
             };
             if (id) {
-                await axios.put(`/api/products/${id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+                await api.put(`/products/${id}`, payload);
                 toast.success("更新成功");
             } else {
-                await axios.post("/api/products", payload, { headers: { Authorization: `Bearer ${token}` } });
+                await api.post("/products", payload);
                 toast.success("创建成功");
             }
             setLocation("/admin/selection");

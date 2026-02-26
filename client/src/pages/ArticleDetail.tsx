@@ -10,7 +10,7 @@ import { Footer } from '@/components/Footer';
 import { SimpleDivider } from '@/components/OrganicDivider';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Heart } from 'lucide-react';
-import axios from 'axios';
+import { api, getImageUrl } from '@/lib/api';
 
 interface News {
   id: number;
@@ -24,6 +24,13 @@ interface News {
   category: { name: string; type?: string };
 }
 
+interface AdminInfo {
+  username: string;
+  nickname: string | null;
+  avatar: string | null;
+  title: string | null;
+}
+
 interface ArticleDetailProps {
   id: string;
 }
@@ -32,17 +39,40 @@ export function ArticleDetailPage({ id }: ArticleDetailProps) {
   const [, navigate] = useLocation();
   const [article, setArticle] = useState<News | null>(null);
   const [relatedArticles, setRelatedArticles] = useState<News[]>([]);
+  const [authorInfo, setAuthorInfo] = useState<AdminInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     const loadArticle = async () => {
       try {
-        const res = await axios.get(`/api/news/${id}`);
+        const res = await api.get(`/news/${id}`);
         setArticle(res.data);
 
+        // Fetch author's current info from admin table (by username)
+        // Note: author field now stores username, but old data might have nickname
+        if (res.data.author) {
+          try {
+            // Try by username first (new data format)
+            let adminRes = await api.get(`/admins/by-username/${encodeURIComponent(res.data.author)}`);
+            if (!adminRes.data.username) {
+              // Fallback: try by-name for old data (nickname stored)
+              adminRes = await api.get(`/admins/by-name/${encodeURIComponent(res.data.author)}`);
+            }
+            setAuthorInfo(adminRes.data);
+          } catch {
+            // If admin not found, use data from article (may be outdated)
+            setAuthorInfo({
+              username: res.data.author,
+              nickname: res.data.author,
+              avatar: res.data.authorAvatar || null,
+              title: res.data.authorTitle || null
+            });
+          }
+        }
+
         // Fetch related articles (same category)
-        const allRes = await axios.get('/api/news');
+        const allRes = await api.get('/news');
         const related = allRes.data
           .filter((a: News) => a.id !== Number(id) && a.category.name === res.data.category.name)
           .slice(0, 3);
@@ -117,16 +147,16 @@ export function ArticleDetailPage({ id }: ArticleDetailProps) {
             </h1>
 
             <div className="flex items-center gap-4 pt-4 border-t border-border">
-              {article.authorAvatar ? (
-                <img src={article.authorAvatar} alt={article.author} className="w-10 h-10 rounded-full object-cover" />
+              {getImageUrl(authorInfo?.avatar || null) ? (
+                <img src={getImageUrl(authorInfo?.avatar || null)} alt={authorInfo?.nickname || article.author} className="w-10 h-10 rounded-full object-cover" />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-sm font-semibold text-orange-600">
-                  {article.author.charAt(0)}
+                  {(authorInfo?.nickname || article.author || '?').charAt(0).toUpperCase()}
                 </div>
               )}
               <div>
-                <p className="font-medium text-slate-800">{article.author}</p>
-                <p className="text-sm text-slate-500">{article.authorTitle || '健康专家'}</p>
+                <p className="font-medium text-slate-800">{authorInfo?.nickname || article.author}</p>
+                <p className="text-sm text-slate-500">{authorInfo?.title || article.authorTitle || '健康专家'}</p>
               </div>
             </div>
           </div>
@@ -182,7 +212,7 @@ export function ArticleDetailPage({ id }: ArticleDetailProps) {
                 >
                   <div className="relative overflow-hidden h-40 bg-gray-200">
                     <img
-                      src={relatedArticle.cover}
+                      src={getImageUrl(relatedArticle.cover) || 'https://via.placeholder.com/300'}
                       alt={relatedArticle.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

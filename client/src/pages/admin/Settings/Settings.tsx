@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
-import axios from "axios";
+import { api, uploadApi } from "@/lib/api";
 
 export function Settings() {
     const { user, token, updateUser } = useAuth()!;
@@ -40,7 +40,7 @@ export function Settings() {
         const data = new FormData();
         data.append("file", file);
         try {
-            const res = await axios.post("/api/upload?type=avatar", data, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await uploadApi.post("/upload?type=avatar", data);
             setAvatar(res.data.url);
             toast.success("上传成功");
         } catch (error: any) {
@@ -66,9 +66,7 @@ export function Settings() {
         }
         setProfileLoading(true);
         try {
-            await axios.put(`/api/admins/${userId}`, { nickname, title, avatar }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.put(`/admins/${userId}`, { nickname, title, avatar });
             updateUser({ nickname, title, avatar });
             toast.success("资料更新成功");
         } catch (error: any) {
@@ -97,9 +95,7 @@ export function Settings() {
         }
         setPwLoading(true);
         try {
-            await axios.put(`/api/admins/${userId}/password`, { password }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.put(`/admins/${userId}/password`, { password });
             toast.success("密码修改成功");
             setPassword("");
             setConfirmPassword("");

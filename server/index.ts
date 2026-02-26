@@ -36,6 +36,28 @@ const upload = multer({ storage: storage });
 
 const JWT_SECRET = process.env.JWT_SECRET || "xiangyang-secret-key";
 
+// Get the base URL for constructing full URLs (for production/CDN)
+function getBaseUrl(req: any): string {
+  // In production, use APP_BASE_URL env var or construct from request
+  if (process.env.APP_BASE_URL) {
+    return process.env.APP_BASE_URL;
+  }
+  // Fallback: construct from request headers
+  const protocol = req.protocol;
+  const host = req.get('host');
+  return `${protocol}://${host}`;
+}
+
+// Helper to get full image URL
+function getImageUrl(relativePath: string, req: any): string {
+  // In development, return relative path (frontend will proxy)
+  if (process.env.NODE_ENV !== 'production') {
+    return relativePath;
+  }
+  // In production, return full URL
+  return `${getBaseUrl(req)}${relativePath}`;
+}
+
 // 图片压缩配置
 interface ImageConfig {
   width: number;
@@ -124,7 +146,31 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
-  app.use(cors());
+  // CORS configuration for frontend-backend separation
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+  ];
+
+  app.use(cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      // Allow requests from allowed origins
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn('CORS blocked origin:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
+
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
@@ -138,7 +184,50 @@ async function startServer() {
       : path.resolve(__dirname, "..", "dist", "public");
 
   // API Routes
-  app.get("/api/version", (req, res) => res.json({ version: "1.1", updated: new Date().toISOString() }));
+  app.get("/api/version", (req, res) => res.json({ version: "2.0.0", updated: new Date().toISOString() }));
+
+  // Get admin by username (for dynamic author info lookup in articles)
+  app.get("/api/admins/by-username/:username", async (req, res) => {
+    try {
+      const { username } = req.params;
+      const admin = await prisma.admin.findUnique({
+        where: { username },
+        select: { id: true, username: true, nickname: true, avatar: true, title: true }
+      });
+
+      if (!admin) {
+        return res.json({ username, nickname: null, avatar: null, title: null });
+      }
+
+      res.json(admin);
+    } catch (e) {
+      res.status(500).json({ error: "查询失败" });
+    }
+  });
+
+  // Legacy: Get admin by name (supports both username and nickname for backward compatibility)
+  app.get("/api/admins/by-name/:name", async (req, res) => {
+    try {
+      const { name } = req.params;
+      const admin = await prisma.admin.findFirst({
+        where: {
+          OR: [
+            { username: name },
+            { nickname: name }
+          ]
+        },
+        select: { id: true, username: true, nickname: true, avatar: true, title: true }
+      });
+
+      if (!admin) {
+        return res.json({ username: null, nickname: null, avatar: null, title: null });
+      }
+
+      res.json(admin);
+    } catch (e) {
+      res.status(500).json({ error: "查询失败" });
+    }
+  });
 
   // Auth: Login
   app.post("/api/auth/login", async (req, res) => {
@@ -192,7 +281,7 @@ async function startServer() {
 
     // 如果不是图片文件，直接返回原文件
     if (!isImageFile(originalFilename)) {
-      return res.json({ url: `/uploads/${originalFilename}` });
+      return res.json({ url: getImageUrl(`/uploads/${originalFilename}`, req) });
     }
 
     // 获取图片类型参数 (avatar, news, product, default)
@@ -220,11 +309,11 @@ async function startServer() {
         console.log(`Image kept original (compression not beneficial): ${originalFilename}`);
       }
 
-      res.json({ url: `/uploads/${originalFilename}` });
+      res.json({ url: getImageUrl(`/uploads/${originalFilename}`, req) });
     } catch (error) {
       console.error('Image compression error:', error);
       // 压缩失败也返回原图
-      res.json({ url: `/uploads/${originalFilename}` });
+      res.json({ url: getImageUrl(`/uploads/${originalFilename}`, req) });
     }
   });
 

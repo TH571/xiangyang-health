@@ -11,7 +11,7 @@ import { ArticleCard } from '@/components/ArticleCard';
 import { SimpleDivider } from '@/components/OrganicDivider';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Search } from 'lucide-react';
-import axios from 'axios';
+import { api, getImageUrl } from '@/lib/api';
 import { Article } from '@/lib/mockData';
 
 interface CategoryListProps {
@@ -48,7 +48,7 @@ export function CategoryListPage({ category }: CategoryListProps) {
   useEffect(() => {
     const loadArticles = async () => {
       try {
-        const response = await axios.get('/api/news');
+        const response = await api.get('/news');
         const allNews = response.data;
 
         // Filter based on category loosely
@@ -64,12 +64,12 @@ export function CategoryListPage({ category }: CategoryListProps) {
           id: String(n.id),
           title: n.title,
           category: category,
-          image: n.cover || "https://via.placeholder.com/300",
+          image: getImageUrl(n.cover) || "https://via.placeholder.com/300",
           date: n.date,
           excerpt: n.content?.replace(/<[^>]+>/g, '').substring(0, 100) + "...",
           content: n.content,
           author: n.author,
-          authorAvatar: n.authorAvatar,
+          authorAvatar: getImageUrl(n.authorAvatar),
           publishDate: n.date
         }));
 

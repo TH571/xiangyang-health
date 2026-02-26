@@ -10,7 +10,7 @@ import { Footer } from '@/components/Footer';
 import { SimpleDivider } from '@/components/OrganicDivider';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ShoppingCart, Heart, Star } from 'lucide-react';
-import axios from 'axios';
+import { api, getImageUrl } from '@/lib/api';
 import { toast } from "sonner";
 
 interface Product {
@@ -42,8 +42,8 @@ export function SelectionPage() {
     const fetchData = async () => {
       try {
         const [prodRes, catRes] = await Promise.all([
-          axios.get('/api/products'),
-          axios.get('/api/categories?type=selection')
+          api.get('/products'),
+          api.get('/categories?type=selection')
         ]);
 
         const loadedProducts = prodRes.data.map((item: any) => ({
@@ -52,7 +52,7 @@ export function SelectionPage() {
           category: item.category?.name || '其他',
           price: item.price || '0',
           originalPrice: undefined,
-          image: item.image || 'https://via.placeholder.com/300',
+          image: getImageUrl(item.image) || 'https://via.placeholder.com/300',
           rating: item.rating || 5.0,
           reviews: Math.floor(Math.random() * 500) + 50,
           description: item.introduction || '',

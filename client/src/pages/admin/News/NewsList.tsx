@@ -18,7 +18,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
+import { api, uploadApi } from "@/lib/api";
 
 interface News {
     id: number;
@@ -46,7 +46,7 @@ export function NewsList() {
 
     const fetchNews = async () => {
         try {
-            const res = await axios.get("/api/news");
+            const res = await api.get("/news");
             setNews(res.data);
         } catch { toast.error("加载新闻失败"); }
         finally { setLoading(false); }
@@ -57,7 +57,7 @@ export function NewsList() {
     const handleDelete = async (id: number) => {
         if (!confirm("确定删除?")) return;
         try {
-            await axios.delete(`/api/news/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await api.delete(`/news/${id}`);
             toast.success("删除成功");
             fetchNews();
         } catch { toast.error("删除失败"); }
@@ -119,7 +119,7 @@ export function NewsList() {
 
 export function NewsEdit({ params }: { params?: { id?: string } }) {
     const { token, user } = useAuth()!;
-    const [formData, setFormData] = useState<Partial<News>>({ content: "", author: user?.nickname || "", authorAvatar: user?.avatar || "" });
+    const [formData, setFormData] = useState<Partial<News>>({ content: "", author: user?.username || "", authorTitle: user?.title || "", authorAvatar: user?.avatar || "" });
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [location, setLocation] = useLocation();
@@ -130,11 +130,11 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
     useEffect(() => {
         const loadData = async () => {
             // Fetch categories
-            const catRes = await axios.get("/api/categories?type=news", { headers: { Authorization: `Bearer ${token}` } });
+            const catRes = await api.get("/categories?type=news");
             setCategories(catRes.data);
 
             if (id) {
-                const res = await axios.get(`/api/news/${id}`);
+                const res = await api.get(`/news/${id}`);
                 setFormData(res.data);
             }
         };
@@ -147,7 +147,7 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
         const data = new FormData();
         data.append("file", file);
         try {
-            const res = await axios.post("/api/upload?type=news", data, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await uploadApi.post("/upload?type=news", data);
             setFormData({ ...formData, cover: res.data.url });
             toast.success("上传成功");
         } catch { toast.error("上传失败"); }
@@ -156,9 +156,7 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
     const handleImageUpload = async (file: File) => {
         const data = new FormData();
         data.append('file', file);
-        const res = await axios.post('/api/upload?type=news', data, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await uploadApi.post('/upload?type=news', data);
         return res.data.url;
     };
 
@@ -187,10 +185,10 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
                 categoryId: Number(formData.categoryId),
             };
             if (id) {
-                await axios.put(`/api/news/${id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+                await api.put(`/news/${id}`, payload);
                 toast.success("更新成功");
             } else {
-                await axios.post("/api/news", payload, { headers: { Authorization: `Bearer ${token}` } });
+                await api.post("/news", payload);
                 toast.success("发布成功");
             }
             setLocation("/admin/news");
@@ -232,12 +230,12 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
                                     className="h-auto p-0 text-orange-600 font-normal text-xs"
                                     onClick={() => setFormData(prev => ({
                                         ...prev,
-                                        author: user?.nickname || "",
+                                        author: user?.username || "",
                                         authorTitle: user?.title || "",
                                         authorAvatar: user?.avatar || ""
                                     }))}
                                 >
-                                    使用我的资料 ({user?.nickname})
+                                    使用我的资料 ({user?.username})
                                 </Button>
                             </div>
                             <Input value={formData.author || ""} onChange={e => setFormData({ ...formData, author: e.target.value })} />

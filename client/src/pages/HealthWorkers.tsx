@@ -9,7 +9,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Star } from 'lucide-react';
-import axios from 'axios';
+import { api, getImageUrl } from '@/lib/api';
 import { toast } from "sonner";
 
 interface Expert {
@@ -38,8 +38,8 @@ export function HealthWorkersPage() {
     const fetchData = async () => {
       try {
         const [expRes, catRes] = await Promise.all([
-          axios.get('/api/experts'),
-          axios.get('/api/categories?type=expert')
+          api.get('/experts'),
+          api.get('/categories?type=expert')
         ]);
 
         const loadedExperts = expRes.data.map((item: any) => ({
@@ -48,7 +48,7 @@ export function HealthWorkersPage() {
           title: item.title,
           specialty: item.category?.name || '其他',
           bio: item.unit || '',
-          avatar: item.avatar || 'https://via.placeholder.com/150',
+          avatar: getImageUrl(item.avatar) || 'https://via.placeholder.com/150',
           rating: item.score || 5.0,
           consultations: Math.floor(Math.random() * 1000) + 100, // Mock for now
           expertise: item.achievements ? [item.achievements] : [], // Use achievements as expertise tag for now

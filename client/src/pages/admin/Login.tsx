@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import axios from "axios";
+import { api } from "@/lib/api";
 
 export function AdminLogin() {
     const [username, setUsername] = useState("");
@@ -27,10 +27,7 @@ export function AdminLogin() {
         setIsLoading(true);
 
         try {
-            // Use full URL if not proxied, but setupProxy might be needed. 
-            // Assuming relative path works with Vite proxy or we configure it.
-            // For now, use relative /api path.
-            const res = await axios.post("/api/auth/login", { username, password });
+            const res = await api.post("/auth/login", { username, password });
             const { token, ...user } = res.data;
             login(token, user);
             toast.success("登录成功");

@@ -14,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
+import { api, uploadApi } from "@/lib/api";
 
 interface Expert {
     id: number;
@@ -41,7 +41,7 @@ export function ExpertList() {
 
     const fetchExperts = async () => {
         try {
-            const res = await axios.get("/api/experts");
+            const res = await api.get("/experts");
             setExperts(res.data);
         } catch { toast.error("加载专家失败"); }
         finally { setLoading(false); }
@@ -52,7 +52,7 @@ export function ExpertList() {
     const handleDelete = async (id: number) => {
         if (!confirm("确定删除?")) return;
         try {
-            await axios.delete(`/api/experts/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await api.delete(`/experts/${id}`);
             toast.success("删除成功");
             fetchExperts();
         } catch { toast.error("删除失败"); }
@@ -119,10 +119,10 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const catRes = await axios.get("/api/categories?type=expert", { headers: { Authorization: `Bearer ${token}` } });
+                const catRes = await api.get("/categories?type=expert");
                 setCategories(catRes.data);
                 if (id) {
-                    const res = await axios.get(`/api/experts/${id}`);
+                    const res = await api.get(`/experts/${id}`);
                     setFormData(res.data);
                 }
             } catch (err) {
@@ -139,7 +139,7 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
         const data = new FormData();
         data.append("file", file);
         try {
-            const res = await axios.post("/api/upload?type=avatar", data, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await uploadApi.post("/upload?type=avatar", data);
             setFormData({ ...formData, avatar: res.data.url });
             toast.success("上传成功");
         } catch { toast.error("上传失败"); }
@@ -169,10 +169,10 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
                 categoryId: Number(formData.categoryId),
             };
             if (id) {
-                await axios.put(`/api/experts/${id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+                await api.put(`/experts/${id}`, payload);
                 toast.success("更新成功");
             } else {
-                await axios.post("/api/experts", payload, { headers: { Authorization: `Bearer ${token}` } });
+                await api.post("/experts", payload);
                 toast.success("创建成功");
             }
             setLocation("/admin/experts");

@@ -1,0 +1,60 @@
+# Tencent Cloud Pages Deployment Configuration
+# Frontend: Static Site Hosting
+# Backend: Separate Cloud Server Deployment
+
+name: xiangyang-health-frontend
+
+version: 1.0.0
+
+# Framework Configuration
+framework:
+  # Using Vite for frontend build
+  name: vite
+  # Build command
+  buildCommand: pnpm vite build
+  # Output directory (matches vite.config.ts outDir)
+  outputDirectory: dist/public
+
+# Environment Variables (required for production)
+env:
+  # Backend API URL - set this in Tencent Cloud Pages console
+  # Example: https://api.xiangyang.example.com
+  VITE_API_BASE_URL: ''
+
+# Deployment Settings
+deployment:
+  # Automatic deployment on push to main branch
+  autoDeploy: true
+  # Branch to deploy
+  branch: feature/frontend-backend-separation
+  # Directory to deploy (relative to repo root)
+  root: ./
+
+# Static File Handling
+static:
+  # Handle /uploads as proxy to backend
+  # Images uploaded to backend should be served from backend URL
+  redirects:
+    - source: /uploads/*
+      destination: $VITE_API_BASE_URL/uploads/:splat
+      type: 200
+
+# Cache Settings
+cache:
+  # Cache static assets for 1 year
+  - pattern: '**/*.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)'
+    maxAge: 31536000
+  # Cache HTML for 1 hour
+  - pattern: '**/*.html'
+    maxAge: 3600
+
+# Headers for security and performance
+headers:
+  - source: '**/*.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)'
+    headers:
+      - key: Cache-Control
+        value: 'public, max-age=31536000, immutable'
+  - source: '**/*.html'
+    headers:
+      - key: Cache-Control
+        value: 'public, max-age=3600'

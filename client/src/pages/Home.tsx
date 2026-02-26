@@ -13,7 +13,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { OrganicDivider, SimpleDivider } from "@/components/OrganicDivider";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import axios from "axios";
+import { api, getImageUrl } from "@/lib/api";
 
 // Interfaces based on usage
 interface User {
@@ -50,8 +50,8 @@ export default function Home() {
     const loadData = async () => {
       try {
         const [expertsRes, newsRes] = await Promise.all([
-          axios.get('/api/experts'),
-          axios.get('/api/news')
+          api.get('/experts'),
+          api.get('/news')
         ]);
 
         // Map Experts to Users
@@ -59,7 +59,7 @@ export default function Home() {
           id: String(e.id),
           name: e.name,
           title: e.title,
-          avatar: e.avatar || "https://via.placeholder.com/150",
+          avatar: getImageUrl(e.avatar) || "https://via.placeholder.com/150",
           description: e.achievements || e.introduction?.substring(0, 50) || "专业健康专家",
           quote: "守护每一位工大人的健康"
         }));
@@ -77,12 +77,12 @@ export default function Home() {
             id: String(n.id),
             title: n.title,
             category: category,
-            image: n.cover || "https://via.placeholder.com/300",
+            image: getImageUrl(n.cover) || "https://via.placeholder.com/300",
             date: n.date,
             excerpt: n.content?.replace(/<[^>]+>/g, '').substring(0, 100) + "...",
             content: n.content,
             author: n.author,
-            authorAvatar: n.authorAvatar,
+            authorAvatar: getImageUrl(n.authorAvatar),
             publishDate: n.date
           };
         });
