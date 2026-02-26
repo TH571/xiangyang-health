@@ -60,7 +60,7 @@ export function HealthWorkersPage() {
 
   // 当数据变化时更新状态
   useEffect(() => {
-    const loadedExperts = expertsRaw.map((item: any) => ({
+    const loadedExperts = (expertsRaw || []).map((item: any) => ({
       id: String(item.id),
       name: item.name,
       title: item.title,
@@ -77,7 +77,7 @@ export function HealthWorkersPage() {
     setExperts(loadedExperts);
     setFilteredExperts(loadedExperts);
 
-    const categoryNames = ['全部', ...categoriesRaw.map((c: any) => c.name)];
+    const categoryNames = ['全部', ...(categoriesRaw || []).map((c: any) => c.name)];
     setCategories(categoryNames);
   }, [expertsRaw, categoriesRaw]);
 

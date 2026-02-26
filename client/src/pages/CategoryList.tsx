@@ -60,8 +60,8 @@ export function CategoryListPage({ category }: CategoryListProps) {
 
   // 当新闻数据变化时更新文章列表
   useEffect(() => {
-    // Filter based on category loosely
-    const filtered = newsData.filter((n: any) => {
+    // Filter based on category loosely - 添加空值检查
+    const filtered = (newsData || []).filter((n: any) => {
       const catName = n.category?.name || "";
       if (category === "frontiers") return catName.includes("前沿") || catName === "frontiers";
       if (category === "lectures") return catName.includes("讲座") || catName.includes("讲堂") || catName === "lectures";

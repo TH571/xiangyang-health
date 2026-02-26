@@ -74,8 +74,8 @@ export default function Home() {
 
   // 当数据变化时更新状态
   useEffect(() => {
-    // Map Experts to Users
-    const mappedUsers = expertsData.slice(0, 4).map((e: any) => ({
+    // Map Experts to Users - 添加空值检查
+    const mappedUsers = (expertsData || []).slice(0, 4).map((e: any) => ({
       id: String(e.id),
       name: e.name,
       title: e.title,
@@ -85,8 +85,8 @@ export default function Home() {
     }));
     setUsers(mappedUsers);
 
-    // Map News to Articles
-    const mappedArticles = newsData.map((n: any) => {
+    // Map News to Articles - 添加空值检查
+    const mappedArticles = (newsData || []).map((n: any) => {
       let category: ArticleCategory = "science"; // default
       const catName = n.category?.name || "";
       if (catName.includes("前沿") || catName === "frontiers") category = "frontiers";
