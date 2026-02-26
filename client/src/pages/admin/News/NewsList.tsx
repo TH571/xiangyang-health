@@ -82,7 +82,7 @@ export function NewsList() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {news.map(item => (
+                        {news?.map(item => (
                             <TableRow key={item.id}>
                                 <TableCell className="font-medium max-w-[300px] truncate">
                                     <a
@@ -107,7 +107,7 @@ export function NewsList() {
                                 </TableCell>
                             </TableRow>
                         ))}
-                        {news.length === 0 && !loading && <TableRow><TableCell colSpan={5} className="text-center py-6">暂无数据</TableCell></TableRow>}
+                        {(!news || news.length === 0) && !loading && <TableRow><TableCell colSpan={5} className="text-center py-6">暂无数据</TableCell></TableRow>}
                     </TableBody>
                 </Table>
             </div>

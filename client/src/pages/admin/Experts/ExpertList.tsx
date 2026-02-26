@@ -78,7 +78,7 @@ export function ExpertList() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {experts.map(item => (
+                        {experts?.map(item => (
                             <TableRow key={item.id}>
                                 <TableCell className="text-center">
                                     <img src={getImageUrl(item.avatar) || "https://via.placeholder.com/40"} alt={item.name} className="w-10 h-10 rounded-full object-cover mx-auto" />
@@ -99,7 +99,7 @@ export function ExpertList() {
                                 </TableCell>
                             </TableRow>
                         ))}
-                        {experts.length === 0 && !loading && <TableRow><TableCell colSpan={6} className="text-center py-6">暂无数据</TableCell></TableRow>}
+                        {(!experts || experts.length === 0) && !loading && <TableRow><TableCell colSpan={6} className="text-center py-6">暂无数据</TableCell></TableRow>}
                     </TableBody>
                 </Table>
             </div>

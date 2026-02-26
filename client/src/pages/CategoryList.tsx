@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Search } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
 import { Article } from '@/lib/mockData';
+import { useCachedData } from "@/hooks/useCachedData";
 
 interface CategoryListProps {
   category: 'frontiers' | 'lectures' | 'science';
@@ -40,51 +41,48 @@ export function CategoryListPage({ category }: CategoryListProps) {
   const [, navigate] = useLocation();
   const [articles, setArticles] = useState<Article[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   const config = categoryConfig[category];
 
+  // 使用缓存 hook 获取新闻数据
+  const { data: newsData = [], loading } = useCachedData<any[]>(
+    `category_${category}`,
+    async () => {
+      const response = await api.get('/news');
+      return response.data;
+    }
+  );
+
+  // 当新闻数据变化时更新文章列表
   useEffect(() => {
-    const loadArticles = async () => {
-      try {
-        const response = await api.get('/news');
-        const allNews = response.data;
+    // Filter based on category loosely
+    const filtered = newsData.filter((n: any) => {
+      const catName = n.category?.name || "";
+      if (category === "frontiers") return catName.includes("前沿") || catName === "frontiers";
+      if (category === "lectures") return catName.includes("讲座") || catName.includes("讲堂") || catName === "lectures";
+      if (category === "science") return catName.includes("科普") || catName === "science";
+      return false;
+    });
 
-        // Filter based on category loosely
-        const filtered = allNews.filter((n: any) => {
-          const catName = n.category?.name || "";
-          if (category === "frontiers") return catName.includes("前沿") || catName === "frontiers";
-          if (category === "lectures") return catName.includes("讲座") || catName.includes("讲堂") || catName === "lectures";
-          if (category === "science") return catName.includes("科普") || catName === "science";
-          return false;
-        });
+    const mappedArticles = filtered.map((n: any) => ({
+      id: String(n.id),
+      title: n.title,
+      category: category,
+      image: getImageUrl(n.cover) || "https://via.placeholder.com/300",
+      date: n.date,
+      excerpt: n.content?.replace(/<[^>]+>/g, '').substring(0, 100) + "...",
+      content: n.content,
+      author: n.author,
+      authorAvatar: getImageUrl(n.authorAvatar),
+      publishDate: n.date
+    }));
 
-        const mappedArticles = filtered.map((n: any) => ({
-          id: String(n.id),
-          title: n.title,
-          category: category,
-          image: getImageUrl(n.cover) || "https://via.placeholder.com/300",
-          date: n.date,
-          excerpt: n.content?.replace(/<[^>]+>/g, '').substring(0, 100) + "...",
-          content: n.content,
-          author: n.author,
-          authorAvatar: getImageUrl(n.authorAvatar),
-          publishDate: n.date
-        }));
+    setArticles(mappedArticles);
+    setFilteredArticles(mappedArticles);
+  }, [newsData, category]);
 
-        setArticles(mappedArticles);
-        setFilteredArticles(mappedArticles);
-      } catch (error) {
-        console.error('Failed to load articles:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadArticles();
-  }, [category]);
-
+  // 搜索过滤
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredArticles(articles);

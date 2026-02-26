@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Star } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
 import { toast } from "sonner";
+import { useCachedData } from "@/hooks/useCachedData";
 
 interface Expert {
   id: string;
@@ -34,40 +35,45 @@ export function HealthWorkersPage() {
   const [selectedSpecialty, setSelectedSpecialty] = useState('全部');
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
 
+  // 使用缓存 hook
+  const { data: expertsRaw = [], loading: expertsLoading } = useCachedData<any[]>(
+    'healthworkers_experts',
+    async () => {
+      const res = await api.get('/experts');
+      return res.data;
+    }
+  );
+
+  const { data: categoriesRaw = [] } = useCachedData<any[]>(
+    'healthworkers_categories',
+    async () => {
+      const res = await api.get('/categories?type=expert');
+      return res.data;
+    }
+  );
+
+  // 当数据变化时更新状态
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [expRes, catRes] = await Promise.all([
-          api.get('/experts'),
-          api.get('/categories?type=expert')
-        ]);
+    const loadedExperts = expertsRaw.map((item: any) => ({
+      id: String(item.id),
+      name: item.name,
+      title: item.title,
+      specialty: item.category?.name || '其他',
+      bio: item.unit || '',
+      avatar: getImageUrl(item.avatar) || 'https://via.placeholder.com/150',
+      rating: item.score || 5.0,
+      consultations: Math.floor(Math.random() * 1000) + 100,
+      expertise: item.achievements ? [item.achievements] : [],
+      introduction: item.introduction,
+      experience: `${item.unit || ''} | ${item.achievements || ''}`
+    }));
 
-        const loadedExperts = expRes.data.map((item: any) => ({
-          id: String(item.id),
-          name: item.name,
-          title: item.title,
-          specialty: item.category?.name || '其他',
-          bio: item.unit || '',
-          avatar: getImageUrl(item.avatar) || 'https://via.placeholder.com/150',
-          rating: item.score || 5.0,
-          consultations: Math.floor(Math.random() * 1000) + 100, // Mock for now
-          expertise: item.achievements ? [item.achievements] : [], // Use achievements as expertise tag for now
-          introduction: item.introduction,
-          experience: `${item.unit || ''} | ${item.achievements || ''}`
-        }));
+    setExperts(loadedExperts);
+    setFilteredExperts(loadedExperts);
 
-        setExperts(loadedExperts);
-        setFilteredExperts(loadedExperts);
-
-        const categoryNames = ['全部', ...catRes.data.map((c: any) => c.name)];
-        setCategories(categoryNames);
-      } catch (error) {
-        toast.error("加载数据失败");
-        console.error(error);
-      }
-    };
-    fetchData();
-  }, []);
+    const categoryNames = ['全部', ...categoriesRaw.map((c: any) => c.name)];
+    setCategories(categoryNames);
+  }, [expertsRaw, categoriesRaw]);
 
   const handleSpecialtyChange = (specialty: string) => {
     setSelectedSpecialty(specialty);

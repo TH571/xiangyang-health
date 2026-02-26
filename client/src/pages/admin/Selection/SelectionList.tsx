@@ -79,7 +79,7 @@ export function SelectionList() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {products.map(item => (
+                        {products?.map(item => (
                             <TableRow key={item.id}>
                                 <TableCell>
                                     <img src={getImageUrl(item.image) || "https://via.placeholder.com/40"} alt={item.name} className="w-12 h-12 rounded object-cover border" />
@@ -100,7 +100,7 @@ export function SelectionList() {
                                 </TableCell>
                             </TableRow>
                         ))}
-                        {products.length === 0 && !loading && <TableRow><TableCell colSpan={6} className="text-center py-6">暂无数据</TableCell></TableRow>}
+                        {(!products || products.length === 0) && !loading && <TableRow><TableCell colSpan={6} className="text-center py-6">暂无数据</TableCell></TableRow>}
                     </TableBody>
                 </Table>
             </div>

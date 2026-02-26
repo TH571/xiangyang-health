@@ -159,7 +159,7 @@ export function CategoryList() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {categories.map((category) => (
+                        {categories?.map((category) => (
                             <TableRow key={category.id}>
                                 <TableCell className="font-medium">{category.name}</TableCell>
                                 <TableCell>{getTypeLabel(category.type)}</TableCell>
@@ -174,7 +174,7 @@ export function CategoryList() {
                                 </TableCell>
                             </TableRow>
                         ))}
-                        {categories.length === 0 && !loading && (
+                        {(!categories || categories.length === 0) && !loading && (
                             <TableRow>
                                 <TableCell colSpan={4} className="text-center py-6 text-slate-500">
                                     暂无数据

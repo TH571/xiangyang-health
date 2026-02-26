@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, AlertCircle } from "lucide-react";
 import { api, getImageUrl, getApiErrorMessage } from "@/lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useCachedData } from "@/hooks/useCachedData";
 
 // Interfaces based on usage
 interface User {
@@ -48,59 +49,63 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 分别缓存专家和新闻数据
+  const { data: expertsData = [], loading: expertsLoading } = useCachedData<any[]>(
+    'home_experts',
+    async () => {
+      const res = await api.get('/experts');
+      return res.data;
+    }
+  );
+
+  const { data: newsData = [], loading: newsLoading, error: newsError } = useCachedData<any[]>(
+    'home_news',
+    async () => {
+      const res = await api.get('/news');
+      return res.data;
+    }
+  );
+
+  // 当数据变化时更新状态
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [expertsRes, newsRes] = await Promise.all([
-          api.get('/experts'),
-          api.get('/news')
-        ]);
+    // Map Experts to Users
+    const mappedUsers = expertsData.slice(0, 4).map((e: any) => ({
+      id: String(e.id),
+      name: e.name,
+      title: e.title,
+      avatar: getImageUrl(e.avatar) || "https://via.placeholder.com/150",
+      description: e.achievements || e.introduction?.substring(0, 50) || "专业健康专家",
+      quote: "守护每一位工大人的健康"
+    }));
+    setUsers(mappedUsers);
 
-        // Map Experts to Users
-        const mappedUsers = expertsRes.data.slice(0, 4).map((e: any) => ({
-          id: String(e.id),
-          name: e.name,
-          title: e.title,
-          avatar: getImageUrl(e.avatar) || "https://via.placeholder.com/150",
-          description: e.achievements || e.introduction?.substring(0, 50) || "专业健康专家",
-          quote: "守护每一位工大人的健康"
-        }));
-        setUsers(mappedUsers);
+    // Map News to Articles
+    const mappedArticles = newsData.map((n: any) => {
+      let category: ArticleCategory = "science"; // default
+      const catName = n.category?.name || "";
+      if (catName.includes("前沿") || catName === "frontiers") category = "frontiers";
+      else if (catName.includes("讲座") || catName.includes("讲堂") || catName === "lectures") category = "lectures";
+      else if (catName.includes("科普") || catName === "science") category = "science";
 
-        // Map News to Articles
-        const mappedArticles = newsRes.data.map((n: any) => {
-          let category: ArticleCategory = "science"; // default
-          const catName = n.category?.name || "";
-          if (catName.includes("前沿") || catName === "frontiers") category = "frontiers";
-          else if (catName.includes("讲座") || catName.includes("讲堂") || catName === "lectures") category = "lectures";
-          else if (catName.includes("科普") || catName === "science") category = "science";
+      return {
+        id: String(n.id),
+        title: n.title,
+        category: category,
+        image: getImageUrl(n.cover) || "https://via.placeholder.com/300",
+        date: n.date,
+        excerpt: n.content?.replace(/<[^>]+>/g, '').substring(0, 100) + "...",
+        content: n.content,
+        author: n.author,
+        authorAvatar: getImageUrl(n.authorAvatar),
+        publishDate: n.date
+      };
+    });
+    setArticles(mappedArticles);
 
-          return {
-            id: String(n.id),
-            title: n.title,
-            category: category,
-            image: getImageUrl(n.cover) || "https://via.placeholder.com/300",
-            date: n.date,
-            excerpt: n.content?.replace(/<[^>]+>/g, '').substring(0, 100) + "...",
-            content: n.content,
-            author: n.author,
-            authorAvatar: getImageUrl(n.authorAvatar),
-            publishDate: n.date
-          };
-        });
-        setArticles(mappedArticles);
-        setError(null);
-
-      } catch (err: any) {
-        console.error("Failed to load data:", err);
-        setError(getApiErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
+    // 更新加载和错误状态
+    setLoading(expertsLoading || newsLoading);
+    setError(newsError ? getApiErrorMessage(newsError) : null);
+  }, [expertsData, newsData, expertsLoading, newsLoading, newsError]);
 
   // Filter logic - adapted to be more flexible or use specific category IDs/names if I knew them.
   // I'll just take slices for now to ensure display if categories don't match exact english keys.
