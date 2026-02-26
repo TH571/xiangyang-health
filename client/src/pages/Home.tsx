@@ -124,7 +124,7 @@ export default function Home() {
       <section
         className="relative py-20 md:py-40 overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50"
         style={{
-          backgroundImage: "url(/images/hero-bg.png)",
+          backgroundImage: "url(/images/hero-bg.jpg)",
           backgroundSize: "cover",
           backgroundPosition: "center center",
           backgroundAttachment: "fixed",
@@ -200,7 +200,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-300 to-amber-300 rounded-full opacity-20 blur-3xl animate-pulse" />
                 <div className="absolute inset-4 bg-gradient-to-br from-orange-200/30 to-amber-200/30 rounded-full blur-2xl" />
                 <img
-                  src="/images/health-illustration.png"
+                  src="/images/health-illustration.jpg"
                   alt="健康插画"
                   className="relative w-full h-full object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                 />
