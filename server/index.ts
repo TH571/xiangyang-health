@@ -370,19 +370,48 @@ async function startServer() {
 
   app.post("/api/news", authenticate, async (req, res) => {
     try {
-      const news = await prisma.news.create({ data: req.body });
+      const { title, author, authorTitle, authorAvatar, cover, content, date, categoryId } = req.body;
+      const news = await prisma.news.create({
+        data: {
+          title,
+          author,
+          authorTitle,
+          authorAvatar,
+          cover,
+          content,
+          date: date ? new Date(date) : undefined,
+          categoryId,
+        },
+      });
       res.json(news);
-    } catch (e) { res.status(500).json({ error: "Failed to create news" }); }
+    } catch (e) {
+      console.error("Failed to create news:", e);
+      res.status(500).json({ error: "Failed to create news", details: (e as Error).message });
+    }
   });
 
   app.put("/api/news/:id", authenticate, async (req, res) => {
     try {
+      // 只提取 Prisma schema 中存在的字段
+      const { title, author, authorTitle, authorAvatar, cover, content, date, categoryId } = req.body;
       const news = await prisma.news.update({
         where: { id: Number(req.params.id) },
-        data: req.body,
+        data: {
+          ...(title !== undefined && { title }),
+          ...(author !== undefined && { author }),
+          ...(authorTitle !== undefined && { authorTitle }),
+          ...(authorAvatar !== undefined && { authorAvatar }),
+          ...(cover !== undefined && { cover }),
+          ...(content !== undefined && { content }),
+          ...(date !== undefined && { date: date ? new Date(date) : undefined }),
+          ...(categoryId !== undefined && { categoryId }),
+        },
       });
       res.json(news);
-    } catch (e) { res.status(500).json({ error: "Failed to update news" }); }
+    } catch (e) {
+      console.error("Failed to update news:", e);
+      res.status(500).json({ error: "Failed to update news", details: (e as Error).message });
+    }
   });
 
   app.delete("/api/news/:id", authenticate, async (req, res) => {
@@ -414,19 +443,37 @@ async function startServer() {
 
   app.post("/api/experts", authenticate, async (req, res) => {
     try {
-      const expert = await prisma.expert.create({ data: req.body });
+      const { name, title, avatar, unit, achievements, introduction, categoryId } = req.body;
+      const expert = await prisma.expert.create({
+        data: { name, title, avatar, unit, achievements, introduction, categoryId },
+      });
       res.json(expert);
-    } catch (e) { res.status(500).json({ error: "Failed to create expert" }); }
+    } catch (e) {
+      console.error("Failed to create expert:", e);
+      res.status(500).json({ error: "Failed to create expert", details: (e as Error).message });
+    }
   });
 
   app.put("/api/experts/:id", authenticate, async (req, res) => {
     try {
+      const { name, title, avatar, unit, achievements, introduction, categoryId } = req.body;
       const expert = await prisma.expert.update({
         where: { id: Number(req.params.id) },
-        data: req.body,
+        data: {
+          ...(name !== undefined && { name }),
+          ...(title !== undefined && { title }),
+          ...(avatar !== undefined && { avatar }),
+          ...(unit !== undefined && { unit }),
+          ...(achievements !== undefined && { achievements }),
+          ...(introduction !== undefined && { introduction }),
+          ...(categoryId !== undefined && { categoryId }),
+        },
       });
       res.json(expert);
-    } catch (e) { res.status(500).json({ error: "Failed to update expert" }); }
+    } catch (e) {
+      console.error("Failed to update expert:", e);
+      res.status(500).json({ error: "Failed to update expert", details: (e as Error).message });
+    }
   });
 
   app.delete("/api/experts/:id", authenticate, async (req, res) => {
@@ -458,19 +505,37 @@ async function startServer() {
 
   app.post("/api/products", authenticate, async (req, res) => {
     try {
-      const product = await prisma.product.create({ data: req.body });
+      const { name, rating, image, introduction, url, price, categoryId } = req.body;
+      const product = await prisma.product.create({
+        data: { name, rating, image, introduction, url, price, categoryId },
+      });
       res.json(product);
-    } catch (e) { res.status(500).json({ error: "Failed to create product" }); }
+    } catch (e) {
+      console.error("Failed to create product:", e);
+      res.status(500).json({ error: "Failed to create product", details: (e as Error).message });
+    }
   });
 
   app.put("/api/products/:id", authenticate, async (req, res) => {
     try {
+      const { name, rating, image, introduction, url, price, categoryId } = req.body;
       const product = await prisma.product.update({
         where: { id: Number(req.params.id) },
-        data: req.body,
+        data: {
+          ...(name !== undefined && { name }),
+          ...(rating !== undefined && { rating }),
+          ...(image !== undefined && { image }),
+          ...(introduction !== undefined && { introduction }),
+          ...(url !== undefined && { url }),
+          ...(price !== undefined && { price }),
+          ...(categoryId !== undefined && { categoryId }),
+        },
       });
       res.json(product);
-    } catch (e) { res.status(500).json({ error: "Failed to update product" }); }
+    } catch (e) {
+      console.error("Failed to update product:", e);
+      res.status(500).json({ error: "Failed to update product", details: (e as Error).message });
+    }
   });
 
   app.delete("/api/products/:id", authenticate, async (req, res) => {
