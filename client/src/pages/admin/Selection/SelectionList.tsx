@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload, Star } from "lucide-react";
 import { toast } from "sonner";
 import { api, uploadApi, getImageUrl } from "@/lib/api";
-import { useCachedData } from "@/hooks/useCachedData";
+import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
 import { SmallAvatarPlaceholder } from "@/components/Placeholder";
 
 interface Product {
@@ -57,6 +57,7 @@ export function SelectionList() {
         try {
             await api.delete(`/products/${id}`);
             toast.success("删除成功");
+            clearAllCache();
             refetch();
         } catch { toast.error("删除失败"); }
     };
@@ -169,6 +170,7 @@ export function SelectionEdit({ params }: { params?: { id?: string } }) {
                 await api.post("/products", payload);
                 toast.success("创建成功");
             }
+            clearAllCache();
             setLocation("/admin/selection");
         } catch { toast.error("保存失败"); }
         finally { setLoading(false); }

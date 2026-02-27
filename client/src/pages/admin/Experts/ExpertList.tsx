@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { api, uploadApi, getImageUrl } from "@/lib/api";
-import { useCachedData } from "@/hooks/useCachedData";
+import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
 import { SmallAvatarPlaceholder } from "@/components/Placeholder";
 
 interface Expert {
@@ -56,6 +56,7 @@ export function ExpertList() {
         try {
             await api.delete(`/experts/${id}`);
             toast.success("删除成功");
+            clearAllCache();
             refetch();
         } catch { toast.error("删除失败"); }
     };
@@ -183,6 +184,7 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
                 await api.post("/experts", payload);
                 toast.success("创建成功");
             }
+            clearAllCache();
             setLocation("/admin/experts");
         } catch { toast.error("保存失败"); }
         finally { setLoading(false); }

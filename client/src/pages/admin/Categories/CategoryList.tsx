@@ -29,7 +29,7 @@ import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { useCachedData } from "@/hooks/useCachedData";
+import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
 
 interface Category {
     id: number;
@@ -65,6 +65,7 @@ export function CategoryList() {
                 await api.post("/categories", currentCategory);
                 toast.success("创建成功");
             }
+            clearAllCache();
             setIsDialogOpen(false);
             refetch();
             setCurrentCategory({ type: "news" });
@@ -78,6 +79,7 @@ export function CategoryList() {
         try {
             await api.delete(`/categories/${id}`);
             toast.success("删除成功");
+            clearAllCache();
             refetch();
         } catch (error) {
             toast.error("删除失败");
