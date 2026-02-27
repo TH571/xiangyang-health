@@ -49,6 +49,7 @@ export default function Home() {
   const [users, setUsers] = useState<User[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSkeleton, setShowSkeleton] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // 使用 useCallback 包装 fetch 函数避免无限循环
@@ -113,6 +114,19 @@ export default function Home() {
     setLoading(expertsLoading || newsLoading);
     setError(newsError ? getApiErrorMessage(newsError) : null);
   }, [expertsData, newsData, expertsLoading, newsLoading, newsError]);
+
+  // 骨架屏最小显示时间控制
+  useEffect(() => {
+    if (!loading) {
+      // 延迟关闭骨架屏，确保至少显示 800ms
+      const timer = setTimeout(() => {
+        setShowSkeleton(false);
+      }, 800);
+      return () => clearTimeout(timer);
+    } else {
+      setShowSkeleton(true);
+    }
+  }, [loading]);
 
   // Filter logic - adapted to be more flexible or use specific category IDs/names if I knew them.
   // I'll just take slices for now to ensure display if categories don't match exact english keys.
@@ -272,7 +286,7 @@ export default function Home() {
             </p>
           </div>
 
-          {loading ? (
+          {showSkeleton ? (
             <UsersSectionSkeleton />
           ) : error ? (
             <div className="text-center py-12 px-4">
@@ -331,7 +345,7 @@ export default function Home() {
             </p>
           </div>
 
-          {loading ? (
+          {showSkeleton ? (
             <ArticlesSectionSkeleton />
           ) : error ? (
             <div className="text-center py-12 px-4">
@@ -387,7 +401,7 @@ export default function Home() {
             </p>
           </div>
 
-          {loading ? (
+          {showSkeleton ? (
             <ArticlesSectionSkeleton />
           ) : error ? (
             <div className="text-center py-12 px-4">
@@ -445,7 +459,7 @@ export default function Home() {
             </p>
           </div>
 
-          {loading ? (
+          {showSkeleton ? (
             <ArticlesSectionSkeleton />
           ) : error ? (
             <div className="text-center py-12 px-4">

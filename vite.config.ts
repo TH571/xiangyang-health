@@ -22,6 +22,40 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // 代码分割配置
+        manualChunks: {
+          // React 核心库单独打包
+          'react-vendor': ['react', 'react-dom'],
+          // UI 组件库单独打包
+          'ui-vendor': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tabs',
+          ],
+          // 图表和富文本编辑器单独打包（体积大）
+          'editor-charts': ['recharts', 'quill', 'react-quill'],
+        },
+        // 控制 chunk 大小
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name.split('.');
+          const ext = info[info.length - 1];
+          if (/\.(png|jpe?g|gif|svg|webp|ico)$/.test(assetInfo.name)) {
+            return 'assets/images/[name]-[hash][extname]';
+          }
+          if (ext === 'css') {
+            return 'assets/css/[name]-[hash][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
+        },
+      },
+    },
+    // 控制 chunk 大小警告
+    chunkSizeWarningLimit: 500,
   },
   server: {
     port: 5173,
