@@ -162,6 +162,13 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
         return res.data.url;
     };
 
+    const handleVideoUpload = async (file: File) => {
+        const data = new FormData();
+        data.append('file', file);
+        const res = await uploadApi.post('/upload?type=video', data);
+        return res.data.url;
+    };
+
     const modules = useMemo(() => ({
         toolbar: [
             [{ header: [1, 2, false] }],
@@ -272,6 +279,7 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
                                 value={formData.content || ""}
                                 onChange={val => setFormData(prev => ({ ...prev, content: val }))}
                                 onImageUpload={handleImageUpload}
+                                onVideoUpload={handleVideoUpload}
                                 modules={modules}
                                 className="mb-12"
                             />

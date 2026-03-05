@@ -1,5 +1,6 @@
 import express from "express";
 import { createServer } from "http";
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import { PrismaClient } from "@prisma/client";
@@ -9,29 +10,20 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import sharp from "sharp";
+import { uploadToOSS } from "./oss";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// 加载环境变量（优先 .env.production，否则 .env）
+const envPath = path.resolve(__dirname, "..", process.env.NODE_ENV === "production" ? ".env.production" : ".env");
+dotenv.config({ path: envPath });
+
 // Initialize Prisma
 const prisma = new PrismaClient();
 
-// Ensure upload directory exists at project root (one level up from server or dist)
-const uploadDir = path.resolve(__dirname, "..", "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Configure Multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
+// Configure Multer with memory storage for OSS upload
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 const JWT_SECRET = process.env.JWT_SECRET || "xiangyang-secret-key";
@@ -46,16 +38,6 @@ function getBaseUrl(req: any): string {
   const protocol = req.protocol;
   const host = req.get('host');
   return `${protocol}://${host}`;
-}
-
-// Helper to get full image URL
-function getImageUrl(relativePath: string, req: any): string {
-  // In development, return relative path (frontend will proxy)
-  if (process.env.NODE_ENV !== 'production') {
-    return relativePath;
-  }
-  // In production, return full URL
-  return `${getBaseUrl(req)}${relativePath}`;
 }
 
 // 图片压缩配置
@@ -90,15 +72,14 @@ const IMAGE_CONFIG: Record<string, ImageConfig> = {
   },
 };
 
-// 图片压缩处理函数
-async function compressImage(
-  inputPath: string,
-  outputPath: string,
+// 图片压缩处理函数（返回 Buffer）
+async function compressImageBuffer(
+  fileBuffer: Buffer,
   type: 'avatar' | 'news' | 'product' | 'default' = 'default'
-): Promise<void> {
+): Promise<Buffer> {
   const config = IMAGE_CONFIG[type];
 
-  let sharpInstance = sharp(inputPath);
+  let sharpInstance = sharp(fileBuffer);
 
   // 获取图片元数据
   const metadata = await sharpInstance.metadata();
@@ -121,18 +102,18 @@ async function compressImage(
   // 根据格式选择输出
   const format = metadata.format;
   if (format === 'jpeg' || format === 'jpg') {
-    await sharpInstance.jpeg({ quality: config.quality, progressive: true }).toFile(outputPath);
+    return await sharpInstance.jpeg({ quality: config.quality, progressive: true }).toBuffer();
   } else if (format === 'png') {
-    // PNG使用压缩级别而非quality
-    await sharpInstance.png({ compressionLevel: 9, progressive: true }).toFile(outputPath);
+    // PNG 使用压缩级别而非 quality
+    return await sharpInstance.png({ compressionLevel: 9, progressive: true }).toBuffer();
   } else if (format === 'webp') {
-    await sharpInstance.webp({ quality: config.quality }).toFile(outputPath);
+    return await sharpInstance.webp({ quality: config.quality }).toBuffer();
   } else if (format === 'gif') {
-    // GIF不压缩，直接复制
-    fs.copyFileSync(inputPath, outputPath);
+    // GIF 不压缩，直接返回原 buffer
+    return fileBuffer;
   } else {
-    // 其他格式转为jpeg
-    await sharpInstance.jpeg({ quality: config.quality, progressive: true }).toFile(outputPath);
+    // 其他格式转为 jpeg
+    return await sharpInstance.jpeg({ quality: config.quality, progressive: true }).toBuffer();
   }
 }
 
@@ -140,6 +121,12 @@ async function compressImage(
 function isImageFile(filename: string): boolean {
   const ext = path.extname(filename).toLowerCase();
   return ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff'].includes(ext);
+}
+
+// 判断是否为视频文件
+function isVideoFile(filename: string): boolean {
+  const ext = path.extname(filename).toLowerCase();
+  return ['.mp4', '.webm', '.ogg', '.mov', '.avi'].includes(ext);
 }
 
 async function startServer() {
@@ -173,16 +160,6 @@ async function startServer() {
 
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
-
-  // Serve static files from the stable uploads directory with cache headers
-  app.use("/uploads", express.static(uploadDir, {
-    etag: true,
-    lastModified: true,
-    setHeaders: (res) => {
-      // 设置强缓存头：1年，immutable
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    }
-  }));
 
   // API Routes
   app.get("/api/version", (req, res) => res.json({ version: "2.0.0", updated: new Date().toISOString() }));
@@ -272,51 +249,69 @@ async function startServer() {
     }
   };
 
-  // Upload with image compression
+  // Upload with image/video compression to OSS
   app.post("/api/upload", authenticate, upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
-    const filePath = req.file.path;
-    const originalFilename = req.file.filename;
-    const fileExt = path.extname(originalFilename).toLowerCase();
+    const fileBuffer = req.file.buffer;
+    const originalFilename = req.file.originalname;
 
-    // 如果不是图片文件，直接返回原文件
-    if (!isImageFile(originalFilename)) {
-      // 返回相对路径，让前端根据 VITE_API_BASE_URL 构建完整URL
-      return res.json({ url: `/uploads/${originalFilename}` });
+    // 获取文件类型参数 (avatar, news, product, video, default)
+    const fileType = (req.query.type as string) || 'default';
+
+    // 判断是否为视频文件
+    const isVideo = isVideoFile(originalFilename);
+    
+    // 视频文件直接上传到 OSS（不压缩）
+    if (isVideo || fileType === 'video') {
+      try {
+        const url = await uploadToOSS(fileBuffer, originalFilename, 'video');
+        return res.json({ url });
+      } catch (error) {
+        console.error('Video upload error:', error);
+        return res.status(500).json({ error: "Failed to upload video" });
+      }
     }
 
-    // 获取图片类型参数 (avatar, news, product, default)
-    const imageType = (req.query.type as 'avatar' | 'news' | 'product' | 'default') || 'default';
+    // 如果不是图片文件，直接上传到 OSS
+    if (!isImageFile(originalFilename)) {
+      try {
+        const url = await uploadToOSS(fileBuffer, originalFilename, fileType);
+        return res.json({ url });
+      } catch (error) {
+        console.error('File upload error:', error);
+        return res.status(500).json({ error: "Failed to upload file" });
+      }
+    }
 
     try {
-      // 创建临时压缩文件路径
-      const tempPath = path.join(uploadDir, `temp-${originalFilename}`);
+      // 压缩图片处理
+      let uploadBuffer = fileBuffer;
 
-      // 压缩图片到临时文件
-      await compressImage(filePath, tempPath, imageType);
+      try {
+        // 压缩图片
+        const compressedBuffer = await compressImageBuffer(fileBuffer, fileType);
 
-      // 获取文件大小对比
-      const originalSize = fs.statSync(filePath).size;
-      const compressedSize = fs.statSync(tempPath).size;
-
-      // 如果压缩后更小，替换原文件
-      if (compressedSize < originalSize) {
-        fs.unlinkSync(filePath);
-        fs.renameSync(tempPath, filePath);
-        console.log(`Image compressed: ${originalFilename} (${(originalSize / 1024).toFixed(1)}KB → ${(compressedSize / 1024).toFixed(1)}KB)`);
-      } else {
-        // 压缩后更大，删除临时文件，保留原图
-        fs.unlinkSync(tempPath);
-        console.log(`Image kept original (compression not beneficial): ${originalFilename}`);
+        // 比较大小
+        if (compressedBuffer.length < fileBuffer.length) {
+          uploadBuffer = compressedBuffer;
+          console.log(`Image compressed: ${originalFilename} (${(fileBuffer.length / 1024).toFixed(1)}KB → ${(compressedBuffer.length / 1024).toFixed(1)}KB)`);
+        } else {
+          uploadBuffer = fileBuffer;
+          console.log(`Image kept original (compression not beneficial): ${originalFilename}`);
+        }
+      } catch (compressionError) {
+        console.error('Image compression error:', compressionError);
+        // 压缩失败使用原文件
+        uploadBuffer = fileBuffer;
       }
 
-      // 返回相对路径，让前端根据 VITE_API_BASE_URL 构建完整URL
-      res.json({ url: `/uploads/${originalFilename}` });
+      // 上传到 OSS
+      const url = await uploadToOSS(uploadBuffer, originalFilename, fileType);
+      res.json({ url });
     } catch (error) {
-      console.error('Image compression error:', error);
-      // 压缩失败也返回相对路径
-      res.json({ url: `/uploads/${originalFilename}` });
+      console.error('Upload error:', error);
+      res.status(500).json({ error: "Failed to upload file" });
     }
   });
 
@@ -595,9 +590,6 @@ async function startServer() {
       res.json({ id: admin.id, username: admin.username, nickname: admin.nickname, title: admin.title, avatar: admin.avatar });
     } catch (e) { res.status(500).json({ error: "Failed to update profile" }); }
   });
-
-  // 注意：前后端分离部署，前端静态资源由 EdgeOne Pages 托管
-  // 后端仅提供 API 服务，不服务前端静态文件
 
   const port = process.env.PORT || 3000;
   server.listen(port, () => {

@@ -17,7 +17,7 @@ const parseVideoUrl = (url: string) => {
         };
     }
 
-    // B站链接解析
+    // B 站链接解析
     const bilibiliMatch = url.match(/bilibili\.com\/video\/(BV[\w]+)|(av[\d]+)/);
     if (bilibiliMatch) {
         const bvid = bilibiliMatch[1] || bilibiliMatch[2];
@@ -116,13 +116,14 @@ interface RichTextEditorProps {
     value: string;
     onChange: (value: string) => void;
     onImageUpload?: (file: File) => Promise<string>;
+    onVideoUpload?: (file: File) => Promise<string>;
     placeholder?: string;
     modules?: any;
     className?: string;
     theme?: string;
 }
 
-export default function RichTextEditor({ value, onChange, onImageUpload, placeholder, modules, className, theme = "snow" }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, onImageUpload, onVideoUpload, placeholder, modules, className, theme = "snow" }: RichTextEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
     const quillRef = useRef<Quill | null>(null);
     const onChangeRef = useRef(onChange);
@@ -161,19 +162,14 @@ export default function RichTextEditor({ value, onChange, onImageUpload, placeho
                         const file = input.files ? input.files[0] : null;
                         if (file) {
                             try {
-                                // 保存当前选区（焦点还在编辑器内）
                                 const savedRange = quill.getSelection(true);
                                 const url = await onImageUpload(file);
-                                // 恢复焦点并插入图片
                                 quill.focus();
                                 const insertIndex = savedRange?.index ?? quill.getLength();
                                 quill.insertEmbed(insertIndex, 'image', url);
-                                // 将光标移动到图片后
                                 quill.setSelection(insertIndex + 1, 0);
-                                // 立即触发 onChange 确保状态同步
                                 isUpdatingRef.current = true;
                                 onChangeRef.current(quill.root.innerHTML);
-                                // 延迟重置标志，确保外部状态更新完成
                                 setTimeout(() => { isUpdatingRef.current = false; }, 100);
                             } catch (error) {
                                 toast.error("图片上传失败");
@@ -183,29 +179,67 @@ export default function RichTextEditor({ value, onChange, onImageUpload, placeho
                 });
             }
 
-            // Handle toolbar video button
+            // Handle toolbar video button - 支持 URL 输入和文件上传
             const toolbar = quill.getModule('toolbar') as any;
             toolbar.addHandler('video', () => {
-                const url = prompt("请输入视频链接:\n\n支持格式：\n- MP4 直链\n- YouTube (youtube.com 或 youtu.be)\n- B站 (bilibili.com)");
-                if (!url) return;
+                // 创建选择菜单
+                const choice = confirm("点击'确定'上传视频文件，点击'取消'输入视频链接");
+                if (choice) {
+                    // 上传视频文件
+                    if (!onVideoUpload) {
+                        toast.error("视频上传功能未配置");
+                        return;
+                    }
+                    const input = document.createElement('input');
+                    input.setAttribute('type', 'file');
+                    input.setAttribute('accept', 'video/*');
+                    input.click();
+                    input.onchange = async () => {
+                        const file = input.files ? input.files[0] : null;
+                        if (file) {
+                            // 检查文件大小（限制 500MB）
+                            if (file.size > 500 * 1024 * 1024) {
+                                toast.error("视频文件不能超过 500MB");
+                                return;
+                            }
+                            try {
+                                const savedRange = quill.getSelection(true);
+                                const url = await onVideoUpload(file);
+                                quill.focus();
+                                const insertIndex = savedRange?.index ?? quill.getLength();
+                                quill.insertEmbed(insertIndex, 'video', url);
+                                quill.setSelection(insertIndex + 1, 0);
+                                isUpdatingRef.current = true;
+                                onChangeRef.current(quill.root.innerHTML);
+                                setTimeout(() => { isUpdatingRef.current = false; }, 100);
+                            } catch (error) {
+                                toast.error("视频上传失败");
+                            }
+                        }
+                    };
+                } else {
+                    // 输入视频链接
+                    const url = prompt("请输入视频链接:\n\n支持格式：\n- MP4 直链\n- YouTube (youtube.com 或 youtu.be)\n- B 站 (bilibili.com)");
+                    if (!url) return;
 
-                const video = parseVideoUrl(url);
-                if (!video) {
-                    toast.error("不支持的视频链接格式");
-                    return;
+                    const video = parseVideoUrl(url);
+                    if (!video) {
+                        toast.error("不支持的视频链接格式");
+                        return;
+                    }
+
+                    const savedRange = quill.getSelection(true);
+                    const insertIndex = savedRange?.index ?? quill.getLength();
+
+                    // 使用自定义 blot 插入视频
+                    quill.insertEmbed(insertIndex, 'video', url);
+
+                    // 将光标移动到视频后
+                    quill.setSelection(insertIndex + 1, 0);
+                    isUpdatingRef.current = true;
+                    onChangeRef.current(quill.root.innerHTML);
+                    setTimeout(() => { isUpdatingRef.current = false; }, 100);
                 }
-
-                const savedRange = quill.getSelection(true);
-                const insertIndex = savedRange?.index ?? quill.getLength();
-
-                // 使用自定义 blot 插入视频
-                quill.insertEmbed(insertIndex, 'video', url);
-
-                // 将光标移动到视频后
-                quill.setSelection(insertIndex + 1, 0);
-                isUpdatingRef.current = true;
-                onChangeRef.current(quill.root.innerHTML);
-                setTimeout(() => { isUpdatingRef.current = false; }, 100);
             });
 
             // Handle Paste and Drop
@@ -215,9 +249,7 @@ export default function RichTextEditor({ value, onChange, onImageUpload, placeho
                     const url = await onImageUpload(file);
                     const index = insertRange?.index ?? quill.getSelection(true)?.index ?? quill.getLength();
                     quill.insertEmbed(index, 'image', url);
-                    // 将光标移动到图片后
                     quill.setSelection(index + 1, 0);
-                    // 立即触发 onChange 确保状态同步
                     isUpdatingRef.current = true;
                     onChangeRef.current(quill.root.innerHTML);
                     setTimeout(() => { isUpdatingRef.current = false; }, 100);
@@ -234,7 +266,6 @@ export default function RichTextEditor({ value, onChange, onImageUpload, placeho
                             const file = items[i].getAsFile();
                             if (file) {
                                 e.preventDefault();
-                                // 保存当前选区位置
                                 const range = quill.getSelection(true);
                                 handleImageInsert(file, range);
                             }
@@ -249,7 +280,6 @@ export default function RichTextEditor({ value, onChange, onImageUpload, placeho
                     for (let i = 0; i < files.length; i++) {
                         if (files[i].type.indexOf('image') !== -1) {
                             e.preventDefault();
-                            // 获取放置位置
                             const range = quill.getSelection(true);
                             handleImageInsert(files[i], range);
                         }
@@ -270,16 +300,14 @@ export default function RichTextEditor({ value, onChange, onImageUpload, placeho
                 quill.root.innerHTML = value;
             }
         }
-    }, []); // Run once on mount
+    }, []);
 
-    // Handle updates from parent (when value is actually different and not during editing)
+    // Handle updates from parent
     useEffect(() => {
         if (quillRef.current && !isUpdatingRef.current) {
             const currentHtml = quillRef.current.root.innerHTML;
             const newValue = value || "";
-            // Only update if content is significantly different (avoid overwriting user edits)
             if (newValue !== currentHtml) {
-                // Check if the difference is just whitespace or minor formatting
                 const normalizedCurrent = currentHtml.replace(/\s+/g, ' ').trim();
                 const normalizedNew = newValue.replace(/\s+/g, ' ').trim();
                 if (normalizedCurrent !== normalizedNew) {
@@ -309,4 +337,3 @@ export default function RichTextEditor({ value, onChange, onImageUpload, placeho
         </div>
     );
 }
-

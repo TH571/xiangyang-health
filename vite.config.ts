@@ -75,9 +75,11 @@ export default defineConfig({
         target: "http://localhost:3000",
         changeOrigin: true,
       },
+      // OSS 图片代理（开发环境）
       "/uploads": {
-        target: "http://localhost:3000",
+        target: "https://xyjk-data.oss-cn-hangzhou.aliyuncs.com",
         changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/uploads/, ''),
       },
     },
     fs: {

@@ -128,6 +128,23 @@ export default function Home() {
     }
   }, [loading]);
 
+  // 首页加载完成后，预加载其他 6 个板块页面
+  useEffect(() => {
+    if (!loading && !showSkeleton) {
+      // 预加载分类页面
+      import("./CategoryList").then(m => {
+        m.HealthFrontiers;
+        m.HealthLectures;
+        m.HealthScience;
+      });
+      // 预加载其他页面
+      import("./ArticleDetail");
+      import("./HealthWorkers");
+      import("./Selection");
+      import("./About");
+    }
+  }, [loading, showSkeleton]);
+
   // Filter logic - adapted to be more flexible or use specific category IDs/names if I knew them.
   // I'll just take slices for now to ensure display if categories don't match exact english keys.
   // Ideally backend should return category "type" or "slug".
@@ -154,7 +171,7 @@ export default function Home() {
       <section
         className="relative py-20 md:py-40 overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50"
         style={{
-          backgroundImage: "url(/images/hero-bg.jpg)",
+          backgroundImage: "url(https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/hero-bg.jpg)",
           backgroundSize: "cover",
           backgroundPosition: "center center",
           backgroundAttachment: "fixed",
@@ -230,7 +247,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-300 to-amber-300 rounded-full opacity-20 blur-3xl animate-pulse" />
                 <div className="absolute inset-4 bg-gradient-to-br from-orange-200/30 to-amber-200/30 rounded-full blur-2xl" />
                 <img
-                  src="/images/health-illustration.jpg"
+                  src="https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/health-illustration.jpg"
                   alt="健康插画"
                   className="relative w-full h-full object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                 />

@@ -104,16 +104,20 @@ uploadApi.interceptors.response.use(
 
 /**
  * Convert image path to full URL
- * - In development: uses /uploads path (proxied by Vite)
- * - In production: uses full backend URL
- * @param path - The image path from database (e.g., /uploads/xxx.jpg)
+ * - OSS URLs (https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/...) are returned as-is
+ * - Legacy /uploads paths are converted to OSS domain in production
+ * @param path - The image path from database (e.g., https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/xxx.jpg or /uploads/xxx.jpg)
  * @returns Full URL for the image
  */
 export function getImageUrl(path: string | null | undefined): string {
   if (!path) return '';
 
-  // If it's already a full URL (http/https), check if it has wrong domain
+  // If it's already a full URL (http/https), return as-is
   if (path.startsWith('http://') || path.startsWith('https://')) {
+    // OSS domain URLs are returned directly
+    if (path.includes('aliyuncs.com')) {
+      return path;
+    }
     // Replace 127.0.0.1 with the correct API base URL
     if (path.includes('127.0.0.1') || path.includes('localhost')) {
       // Extract the path part and rebuild with correct base URL
@@ -124,15 +128,22 @@ export function getImageUrl(path: string | null | undefined): string {
     return path;
   }
 
-  // In development (no API_BASE_URL or localhost), use relative path for Vite proxy
-  // In production, use full backend URL
+  // Legacy /uploads paths - convert to OSS domain in production
   if (path.startsWith('/uploads')) {
-    // Check if we're in production (API_BASE_URL is set and not localhost)
+    // In production, use OSS domain
     if (API_BASE_URL && !API_BASE_URL.includes('localhost') && !API_BASE_URL.includes('127.0.0.1')) {
-      return `${API_BASE_URL}${path}`;
+      // Replace /uploads with OSS domain
+      const ossDomain = 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com';
+      const relativePath = path.replace('/uploads', '');
+      return `${ossDomain}/default${relativePath}`;
     }
     // Development: use relative path, Vite will proxy it
     return path;
+  }
+
+  // Assume it's an OSS path without domain (e.g., avatar/xxx.jpg)
+  if (API_BASE_URL && !API_BASE_URL.includes('localhost') && !API_BASE_URL.includes('127.0.0.1')) {
+    return `https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/${path}`;
   }
 
   return path;

@@ -31,16 +31,9 @@ const SelectionList = lazy(() => import("./pages/admin/Selection/SelectionList")
 const SelectionEdit = lazy(() => import("./pages/admin/Selection/SelectionList").then(m => ({ default: m.SelectionEdit })));
 const Settings = lazy(() => import("./pages/admin/Settings/Settings").then(m => ({ default: m.Settings })));
 
-// 页面加载占位符
+// 页面加载占位符 - 简化为无占位符，直接显示空白
 function PageLoader() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="animate-pulse flex flex-col items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-orange-200" />
-        <div className="h-4 w-24 bg-orange-200 rounded" />
-      </div>
-    </div>
-  );
+  return null;
 }
 
 // Protected Route Wrapper

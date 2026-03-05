@@ -43,7 +43,7 @@ export function Header({ onNavigate }: HeaderProps) {
           onClick={() => onNavigate?.("/")}
         >
           <img
-            src="/images/logo.png"
+            src="https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/logo.png"
             alt="向阳健康"
             className="w-11 h-11 transition-all duration-300 group-hover:scale-105 object-cover"
           />
