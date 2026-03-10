@@ -17,7 +17,11 @@ export function Footer() {
           <div className="text-center mb-8 md:mb-0 md:text-left md:grid md:grid-cols-4 md:gap-8 lg:gap-12">
             <div className="space-y-5 md:col-span-1">
               <div className="flex items-center gap-2.5 justify-center md:justify-start">
-                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 shadow-lg" />
+                <img
+                  src="https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/logo.png"
+                  alt="向阳健康"
+                  className="w-10 h-10 rounded-xl shadow-lg object-cover"
+                />
                 <span className="font-bold text-white text-lg">向阳健康</span>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed hidden md:block">
