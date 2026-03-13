@@ -29,6 +29,13 @@ interface User {
   quote: string;
 }
 
+// Daily Tip interface
+interface DailyTip {
+  content: string;
+  source?: string;
+  date?: string;
+}
+
 // Define valid categories matches ArticleCard expectation
 type ArticleCategory = "frontiers" | "lectures" | "science";
 
@@ -51,6 +58,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dailyTip, setDailyTip] = useState<DailyTip | null>(null);
 
   // 使用 useCallback 包装 fetch 函数避免无限循环
   const fetchExperts = useCallback(async () => {
@@ -144,6 +152,24 @@ export default function Home() {
       import("./About");
     }
   }, [loading, showSkeleton]);
+
+  // 获取每日科普知识
+  useEffect(() => {
+    const fetchDailyTip = async () => {
+      try {
+        const res = await api.get('/daily-tip');
+        setDailyTip(res.data);
+      } catch (error) {
+        console.error('获取每日科普知识失败:', error);
+        // 使用默认文案
+        setDailyTip({
+          content: "每天坚持运动 30 分钟，可以有效降低心血管疾病风险，增强免疫力。",
+          source: "向阳健康"
+        });
+      }
+    };
+    fetchDailyTip();
+  }, []);
 
   // Filter logic - adapted to be more flexible or use specific category IDs/names if I knew them.
   // I'll just take slices for now to ensure display if categories don't match exact english keys.
@@ -283,9 +309,14 @@ export default function Home() {
               <h3 className="text-lg md:text-xl font-semibold tracking-wide">
                 每日一条科普知识
               </h3>
-              <p className="text-orange-100 text-base md:text-lg">
-                1 + 1 = 2！
+              <p className="text-orange-100 text-base md:text-lg max-w-2xl">
+                {dailyTip ? dailyTip.content : "加载中..."}
               </p>
+              {dailyTip?.source && (
+                <p className="text-orange-200 text-sm">
+                  —— {dailyTip.source}
+                </p>
+              )}
             </div>
           </div>
         </div>

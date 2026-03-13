@@ -11,6 +11,7 @@ import jwt from "jsonwebtoken";
 import fs from "fs";
 import sharp from "sharp";
 import { uploadToOSS } from "./oss";
+import { getDailyTip } from "./daily-tip";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -577,6 +578,100 @@ async function startServer() {
       });
       res.json({ id: admin.id, username: admin.username, nickname: admin.nickname, title: admin.title, avatar: admin.avatar });
     } catch (e) { res.status(500).json({ error: "Failed to update profile" }); }
+  });
+
+  // Daily Tip - 每日科普知识
+  app.get("/api/daily-tip", async (req, res) => {
+    try {
+      // 尝试从数据库获取今日已保存的科普知识
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const savedTip = await prisma.dailyTip.findFirst({
+        where: {
+          date: {
+            gte: today,
+            lt: tomorrow
+          },
+          isActive: true
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (savedTip) {
+        return res.json({
+          content: savedTip.content,
+          source: savedTip.source || "向阳健康",
+          date: savedTip.date
+        });
+      }
+
+      // 如果没有保存的，实时获取并保存
+      const tip = await getDailyTip();
+      const newTip = await prisma.dailyTip.create({
+        data: {
+          content: tip.content,
+          source: tip.source,
+          date: today
+        }
+      });
+
+      res.json({
+        content: newTip.content,
+        source: newTip.source || "向阳健康",
+        date: newTip.date
+      });
+    } catch (error) {
+      console.error("获取每日科普知识失败:", error);
+      // 返回默认的科普知识
+      res.json({
+        content: "每天坚持运动 30 分钟，可以有效降低心血管疾病风险，增强免疫力。",
+        source: "向阳健康",
+        date: new Date()
+      });
+    }
+  });
+
+  // 管理员专用：手动添加/更新每日科普知识
+  app.post("/api/daily-tip", authenticate, async (req, res) => {
+    try {
+      const { content, source, date } = req.body;
+      const tip = await prisma.dailyTip.create({
+        data: {
+          content,
+          source: source || "手动录入",
+          date: date ? new Date(date) : new Date()
+        }
+      });
+      res.json(tip);
+    } catch (e) {
+      console.error("创建每日科普知识失败:", e);
+      res.status(500).json({ error: "Failed to create daily tip" });
+    }
+  });
+
+  // 管理员专用：获取所有科普知识列表
+  app.get("/api/daily-tips", authenticate, async (req, res) => {
+    try {
+      const tips = await prisma.dailyTip.findMany({
+        orderBy: { date: 'desc' }
+      });
+      res.json(tips);
+    } catch (e) {
+      res.status(500).json({ error: "Failed to fetch daily tips" });
+    }
+  });
+
+  // 管理员专用：删除科普知识
+  app.delete("/api/daily-tips/:id", authenticate, async (req, res) => {
+    try {
+      await prisma.dailyTip.delete({ where: { id: Number(req.params.id) } });
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: "Failed to delete daily tip" });
+    }
   });
 
   const port = process.env.PORT || 3000;

@@ -75,3 +75,13 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model DailyTip {
+  id        Int      @id @default(autoincrement())
+  content   String   // 科普知识内容
+  source    String?  // 来源
+  date      DateTime @default(now()) // 日期
+  isActive  Boolean  @default(true) // 是否激活
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
