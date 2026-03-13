@@ -195,7 +195,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <section
-        className="relative py-20 md:py-40 overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50"
+        className="relative py-12 md:py-24 overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50"
         style={{
           backgroundImage: "url(https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/hero-bg.jpg)",
           backgroundSize: "cover",
@@ -208,44 +208,44 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl" />
 
         <div className="container relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Content */}
-            <div className="space-y-8 animate-fade-in">
+            <div className="space-y-6 animate-fade-in">
               {/* Logo Icon */}
               <div className="inline-block relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300" />
                 <img
                   src="/images/sunflower-icon-white.png"
                   alt="向阳健康"
-                  className="relative w-24 h-24 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300"
+                  className="relative w-20 h-20 md:w-24 md:h-24 drop-shadow-2xl group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
 
               {/* Main Title */}
-              <div className="space-y-4">
-                <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight tracking-tight">
+              <div className="space-y-3">
+                <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight tracking-tight">
                   以光为引
                   <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600">
                     以知为翼
                   </span>
                 </h1>
-                <p className="text-xl md:text-2xl text-slate-700 leading-relaxed">
+                <p className="text-lg md:text-xl text-slate-700 leading-relaxed">
                   浙工大大健康校友会，守护工大人在健康之路上温暖前行
                 </p>
               </div>
 
               {/* Subtitle */}
-              <div className="space-y-3">
-                <h2 className="text-2xl md:text-3xl font-semibold text-orange-600">
+              <div className="space-y-2">
+                <h2 className="text-xl md:text-2xl font-semibold text-orange-600">
                   向阳健康知库
                 </h2>
-                <p className="text-lg text-slate-600 leading-relaxed">
+                <p className="text-base md:text-lg text-slate-600 leading-relaxed">
                   每日一条科普知识，让健康成为习惯
                 </p>
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-wrap gap-4 pt-4">
+              <div className="flex flex-wrap gap-3 pt-2">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group"
@@ -268,7 +268,7 @@ export default function Home() {
               className="hidden md:flex items-center justify-center animate-fade-in"
               style={{ animationDelay: "0.2s" }}
             >
-              <div className="relative w-80 h-80 lg:w-96 lg:h-96">
+              <div className="relative w-72 h-72 lg:w-80 lg:h-80">
                 {/* Animated Background Glow */}
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-300 to-amber-300 rounded-full opacity-20 blur-3xl animate-pulse" />
                 <div className="absolute inset-4 bg-gradient-to-br from-orange-200/30 to-amber-200/30 rounded-full blur-2xl" />
