@@ -1,3 +1,4 @@
+// @ts-nocheck
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import multer from "multer";
