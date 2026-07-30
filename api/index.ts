@@ -5,8 +5,7 @@ import multer from "multer";
 import cors from "cors";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import path from "path";
-import { getDailyTip } from "../server/daily-tip";
+import { getDailyTip } from "./daily-tip";
 import { uploadToOSS } from "./oss";
 
 const prisma = new PrismaClient();
