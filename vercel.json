@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm install && pnpm exec prisma generate && pnpm build",
+  "buildCommand": "pnpm prisma generate && pnpm build",
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install",
   "framework": "vite",
