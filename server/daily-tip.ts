@@ -17,20 +17,16 @@ const TIANAPI_HEALTH_URL = "http://api.tianapi.com/health/index";
 // 备用科普知识库（当 API 不可用时使用）
 const FALLBACK_TIPS = [
   {
-    content: "人体所需三大宏量为：碳水 脂肪 蛋白质",
-    source: "向阳健康"
-  },
-  {
     content: "每天坚持运动 30 分钟，可以有效降低心血管疾病风险，增强免疫力。",
     source: "中国健康教育中心"
   },
   {
-    content: "成年人每天应摄入 300-500 克蔬菜，深色蔬菜应占一半以上。",
-    source: "中国居民膳食指南"
+    content: "人体所需三大宏量为：碳水 脂肪 蛋白质",
+    source: "向阳健康"
   },
   {
-    content: "保持 7-8 小时的优质睡眠，有助于身体修复和记忆巩固。",
-    source: "国家卫健委"
+    content: "成年人每天应摄入 300-500 克蔬菜，深色蔬菜应占一半以上。",
+    source: "中国居民膳食指南"
   },
   {
     content: "每天饮水 1500-1700 毫升，少量多次，不要等到口渴了再喝水。",
