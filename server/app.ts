@@ -5,7 +5,6 @@ import multer from "multer";
 import cors from "cors";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import sharp from "sharp";
 import path from "path";
 import { uploadToOSS } from "./oss";
 import { getDailyTip } from "./daily-tip";
@@ -56,6 +55,7 @@ async function compressImageBuffer(
   fileBuffer: Buffer,
   type: 'avatar' | 'news' | 'product' | 'default' = 'default'
 ): Promise<Buffer> {
+  const sharp = (await import('sharp')).default;
   const config = IMAGE_CONFIG[type];
   let sharpInstance = sharp(fileBuffer);
   const metadata = await sharpInstance.metadata();
