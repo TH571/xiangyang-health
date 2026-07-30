@@ -5,6 +5,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 
+import { getDailyTip } from "./daily-tip-lib";
+
 const prisma = new PrismaClient();
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || "xiangyang-secret-key";
@@ -37,7 +39,17 @@ app.get("/api/products", async (req, res) => {
 });
 
 app.get("/api/daily-tip", async (req, res) => {
-  res.json({ content: "人体所需三大宏量为：碳水 脂肪 蛋白质", source: "向阳健康", date: new Date() });
+  try {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    const saved = await prisma.dailyTip.findFirst({ where: { date: { gte: today, lt: tomorrow }, isActive: true }, orderBy: { createdAt: "desc" } });
+    if (saved) return res.json({ content: saved.content, source: saved.source || "向阳健康", date: saved.date });
+    const tip = await getDailyTip();
+    const created = await prisma.dailyTip.create({ data: { content: tip.content, source: tip.source || "向阳健康", date: new Date() } });
+    res.json({ content: created.content, source: created.source, date: created.date });
+  } catch (e: any) {
+    res.status(500).json({ error: "Daily tip error", detail: e.message });
+  }
 });
 
 app.post("/api/auth/login", async (req, res) => {
