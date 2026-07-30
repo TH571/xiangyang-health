@@ -1,6 +1,6 @@
 /**
  * Selection Page
- * 向阳优选 - 健康商品推荐
+ * 向阳优品 - 健康商品推荐
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -123,7 +123,7 @@ export function SelectionPage() {
             返回首页
           </button>
 
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">向阳优选</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">向阳优品</h1>
           <p className="text-lg text-white/90 max-w-2xl">
             精选最优质的健康商品，为您的健康生活保驾护航
           </p>

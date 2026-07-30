@@ -65,7 +65,7 @@ export function SelectionList() {
     return (
         <AdminLayout>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">向阳优选管理</h2>
+                <h2 className="text-2xl font-bold">向阳优品管理</h2>
                 <Button onClick={() => setLocation("/admin/selection/new")} className="bg-orange-600 hover:bg-orange-700">
                     <Plus className="w-4 h-4 mr-2" /> 新增产品
                 </Button>

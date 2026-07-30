@@ -100,7 +100,7 @@ export function CategoryList() {
         switch (type) {
             case "news": return "新闻内容";
             case "expert": return "健康工大人";
-            case "selection": return "向阳优选";
+            case "selection": return "向阳优品";
             default: return type;
         }
     }
@@ -141,7 +141,7 @@ export function CategoryList() {
                                 <SelectContent>
                                     <SelectItem value="news">新闻内容</SelectItem>
                                     <SelectItem value="expert">健康工大人</SelectItem>
-                                    <SelectItem value="selection">向阳优选</SelectItem>
+                                    <SelectItem value="selection">向阳优品</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

@@ -20,7 +20,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         { href: "/admin/dashboard", label: "概览", icon: LayoutDashboard },
         { href: "/admin/news", label: "新闻内容", icon: Newspaper },
         { href: "/admin/experts", label: "健康工大人", icon: UserRound },
-        { href: "/admin/selection", label: "向阳优选", icon: ShoppingBag },
+        { href: "/admin/selection", label: "向阳优品", icon: ShoppingBag },
         { href: "/admin/categories", label: "分类管理", icon: FolderTree },
         { href: "/admin/settings", label: "管理员设置", icon: Shield },
     ];
