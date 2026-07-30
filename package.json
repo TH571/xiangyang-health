@@ -9,7 +9,7 @@
     "dev:all": "./start.sh",
     "stop": "./stop.sh",
     "build": "vite build",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "pnpm dev",
     "preview": "vite preview --host",
     "check": "tsc --noEmit",
     "format": "prettier --write ."
