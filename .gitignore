@@ -112,3 +112,6 @@ temp/
 uploads/
 .vercel
 .env*
+
+# Account credentials
+.账号信息.md
