@@ -37,15 +37,7 @@ app.get("/api/products", async (req, res) => {
 });
 
 app.get("/api/daily-tip", async (req, res) => {
-  try {
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-    const saved = await prisma.dailyTip.findFirst({ where: { date: { gte: today, lt: tomorrow }, isActive: true }, orderBy: { createdAt: "desc" } });
-    if (saved) return res.json({ content: saved.content, source: saved.source || "向阳健康", date: saved.date });
-    res.json({ content: "人体所需三大宏量为：碳水 脂肪 蛋白质", source: "向阳健康", date: new Date() });
-  } catch (e: any) {
-    res.status(500).json({ error: "Daily tip error", detail: e.message, stack: e.stack?.split('\n').slice(0,3).join('; ') });
-  }
+  res.json({ content: "人体所需三大宏量为：碳水 脂肪 蛋白质", source: "向阳健康", date: new Date() });
 });
 
 app.post("/api/auth/login", async (req, res) => {
