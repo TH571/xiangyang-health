@@ -2,16 +2,22 @@ import OSS from "ali-oss";
 import path from "path";
 
 // OSS Configuration
-const ossConfig = {
+const ossConfig = () => ({
   region: "oss-cn-hangzhou",
   accessKeyId: process.env.OSS_ACCESS_KEY_ID || "",
   accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET || "",
   bucket: process.env.OSS_BUCKET || "xyjk-data",
   secure: true,
-};
+});
 
-// Initialize OSS client
-export const ossClient = new OSS(ossConfig);
+// Initialize OSS client lazily
+let _ossClient: OSS | null = null;
+function getOSSClient(): OSS {
+  if (!_ossClient) {
+    _ossClient = new OSS(ossConfig());
+  }
+  return _ossClient;
+}
 
 // Domain for OSS resources
 export const OSS_DOMAIN = process.env.OSS_DOMAIN || "https://xyjk-data.oss-cn-hangzhou.aliyuncs.com";
@@ -40,7 +46,7 @@ export async function uploadToOSS(
   const contentType = getContentType(ext);
 
   try {
-    await ossClient.put(objectKey, file, {
+    await getOSSClient().put(objectKey, file, {
       headers: {
         'Content-Type': contentType,
         // 设置缓存控制，1 年
@@ -92,7 +98,7 @@ export async function deleteFromOSS(url: string): Promise<void> {
   try {
     // Extract object key from URL
     const urlPath = url.replace(OSS_DOMAIN, "").replace(/^\//, "");
-    await ossClient.delete(urlPath);
+    await getOSSClient().delete(urlPath);
   } catch (error) {
     console.error("OSS delete error:", error);
     throw new Error("Failed to delete file from OSS");
