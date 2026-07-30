@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx prisma generate && pnpm build",
+  "buildCommand": "npm rebuild && npx prisma generate && pnpm build",
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install",
   "framework": "vite",
