@@ -17,6 +17,10 @@ const TIANAPI_HEALTH_URL = "http://api.tianapi.com/health/index";
 // 备用科普知识库（当 API 不可用时使用）
 const FALLBACK_TIPS = [
   {
+    content: "人体所需三大宏量为：碳水 脂肪 蛋白质",
+    source: "向阳健康"
+  },
+  {
     content: "每天坚持运动 30 分钟，可以有效降低心血管疾病风险，增强免疫力。",
     source: "中国健康教育中心"
   },

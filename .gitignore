@@ -110,3 +110,5 @@ temp/
 
 # Uploads directory (user uploaded files)
 uploads/
+.vercel
+.env*
