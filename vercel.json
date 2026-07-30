@@ -5,6 +5,10 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/api/minimal",
+      "destination": "/api/minimal"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/index"
     },
