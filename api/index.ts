@@ -107,7 +107,13 @@ app.get("/api/categories", async (req, res) => { res.json(await prisma.category.
 app.post("/api/categories", auth, async (req, res) => { try { res.json(await prisma.category.create({ data: req.body })); } catch { res.status(500).json({ error: "Failed to create" }); } });
 app.put("/api/categories/:id", auth, async (req, res) => { try { res.json(await prisma.category.update({ where: { id: Number(req.params.id) }, data: req.body })); } catch { res.status(500).json({ error: "Failed to update" }); } });
 app.delete("/api/categories/:id", auth, async (req, res) => { try { await prisma.category.delete({ where: { id: Number(req.params.id) } }); res.json({ success: true }); } catch { res.status(500).json({ error: "Failed to delete" }); } });
-app.get("/api/news", async (req, res) => { res.json(await prisma.news.findMany({ include: { category: true }, orderBy: { date: "desc" } })); });
+app.get("/api/news", async (req, res) => {
+  const news = await prisma.news.findMany({
+    select: { id: true, title: true, author: true, authorTitle: true, authorAvatar: true, cover: true, date: true, categoryId: true, category: true, createdAt: true },
+    orderBy: { date: "desc" },
+  });
+  res.json(news);
+});
 app.get("/api/news/:id", async (req, res) => { const n = await prisma.news.findUnique({ where: { id: Number(req.params.id) }, include: { category: true } }); if (!n) return res.status(404).json({ error: "Not found" }); res.json(n); });
 app.post("/api/news", auth, async (req, res) => { try { const { title, author, authorTitle, authorAvatar, cover, content, date, categoryId } = req.body; res.json(await prisma.news.create({ data: { title, author, authorTitle, authorAvatar, cover, content, date: date ? new Date(date) : undefined, categoryId } })); } catch { res.status(500).json({ error: "Failed to create" }); } });
 app.put("/api/news/:id", auth, async (req, res) => { try { const d = req.body; res.json(await prisma.news.update({ where: { id: Number(req.params.id) }, data: { ...(d.title !== undefined && { title: d.title }), ...(d.author !== undefined && { author: d.author }), ...(d.authorTitle !== undefined && { authorTitle: d.authorTitle }), ...(d.authorAvatar !== undefined && { authorAvatar: d.authorAvatar }), ...(d.cover !== undefined && { cover: d.cover }), ...(d.content !== undefined && { content: d.content }), ...(d.date !== undefined && { date: new Date(d.date) }), ...(d.categoryId !== undefined && { categoryId: d.categoryId }) } })); } catch { res.status(500).json({ error: "Failed to update" }); } });
