@@ -110,7 +110,7 @@ export default function Home() {
         category: category,
         image: getImageUrl(n.cover) || '',
         date: n.date,
-        excerpt: n.content?.replace(/<[^>]+>/g, '').substring(0, 100) + "...",
+        excerpt: n.content ? n.content.replace(/<[^>]+>/g, '').substring(0, 100) + "..." : n.title,
         content: n.content,
         author: n.author,
         authorAvatar: getImageUrl(n.authorAvatar),
