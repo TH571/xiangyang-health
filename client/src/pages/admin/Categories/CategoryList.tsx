@@ -99,7 +99,7 @@ export function CategoryList() {
     const getTypeLabel = (type: string) => {
         switch (type) {
             case "news": return "新闻内容";
-            case "expert": return "健康工大人";
+            case "expert": return "浙工大健康人";
             case "selection": return "向阳优品";
             default: return type;
         }
@@ -140,7 +140,7 @@ export function CategoryList() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="news">新闻内容</SelectItem>
-                                    <SelectItem value="expert">健康工大人</SelectItem>
+                                    <SelectItem value="expert">浙工大健康人</SelectItem>
                                     <SelectItem value="selection">向阳优品</SelectItem>
                                 </SelectContent>
                             </Select>

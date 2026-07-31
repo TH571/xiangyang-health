@@ -30,21 +30,21 @@ const teamMembers: TeamMember[] = [
     id: '2',
     name: '张华',
     role: '执行会长',
-    bio: '工大84届生工校友，情绪健康领域专家',
+    bio: '浙工大84届生工校友，情绪健康领域专家',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2'
   },
   {
     id: '3',
     name: '葛铁汉',
     role: '常务副会长',
-    bio: '工大校友，健康照明专家',
+    bio: '浙工大校友，健康照明专家',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3'
   },
   {
     id: '4',
     name: '崔妤頔',
     role: '秘书长',
-    bio: '工大校友，大健康领域法律专家',
+    bio: '浙工大校友，大健康领域法律专家',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=4'
   }
 ];
@@ -74,7 +74,7 @@ export function AboutPage() {
 
           <h1 className="text-4xl md:text-5xl font-bold mb-4">关于向阳健康</h1>
           <p className="text-lg text-white/90 max-w-2xl">
-            向阳健康是浙江工业大学大健康校友会的官方网站，我们的使命是守护每一位工大人的健康，让健康成为生活的习惯
+            向阳健康是浙江工业大学大健康校友会的官方网站，我们的使命是守护每一位浙工大人的健康，让健康成为生活的习惯
           </p>
         </div>
       </section>
@@ -92,7 +92,7 @@ export function AboutPage() {
               </div>
               <h3 className="text-2xl font-bold text-slate-900 mb-3">我们的使命</h3>
               <p className="text-slate-600">
-                通过科学的健康知识和专业的指导，帮助工大人建立健康的生活方式，成为自己健康的主人。
+                通过科学的健康知识和专业的指导，帮助浙工大人建立健康的生活方式，成为自己健康的主人。
               </p>
             </div>
 
@@ -103,7 +103,7 @@ export function AboutPage() {
               </div>
               <h3 className="text-2xl font-bold text-slate-900 mb-3">我们的愿景</h3>
               <p className="text-slate-600">
-                构建一个开放、包容、充满温暖的健康社区，让每一个工大人都能找到属于自己的健康之路。
+                构建一个开放、包容、充满温暖的健康社区，让每一个浙工大人都能找到属于自己的健康之路。
               </p>
             </div>
 
@@ -132,14 +132,14 @@ export function AboutPage() {
             <div className="bg-white rounded-lg p-8 border-l-4 border-orange-600">
               <h3 className="text-xl font-bold text-slate-900 mb-3">从一个想法开始</h3>
               <p className="text-slate-600 leading-relaxed">
-              浙工大生物工程学院、食品学院、环境学院等优秀学院，培育了一批又一批从事大健康行业的校友，随着人们对健康的愈来愈关注，因此有了组建大健康校友会的想法——用科学的方法和温暖的陪伴，帮助工大人越来越健康。
+              浙工大生物工程学院、食品学院、环境学院等优秀学院，培育了一批又一批从事大健康行业的校友，随着人们对健康的愈来愈关注，因此有了组建大健康校友会的想法——用科学的方法和温暖的陪伴，帮助浙工大人越来越健康。
               </p>
             </div>
 
             <div className="bg-white rounded-lg p-8 border-l-4 border-blue-600">
               <h3 className="text-xl font-bold text-slate-900 mb-3">汇聚专业力量</h3>
               <p className="text-slate-600 leading-relaxed">
-                我们邀请了医学专家、营养师、心理咨询师和运动教练加入团队，确保每一条建议都是科学、专业的。同时，我们建立了一个由工大校友组成的志愿者团队，他们用自己的亲身经历为其他校友提供支持和鼓励。
+                我们邀请了医学专家、营养师、心理咨询师和运动教练加入团队，确保每一条建议都是科学、专业的。同时，我们建立了一个由浙工大校友组成的志愿者团队，他们用自己的亲身经历为其他校友提供支持和鼓励。
               </p>
             </div>
 
@@ -257,7 +257,7 @@ export function AboutPage() {
               },
               {
                 q: '我可以在平台上分享我的故事吗？',
-                a: '当然可以！我们欢迎所有工大人分享他们的健康故事。您可以通过"健康工大人"页面提交您的故事。'
+                a: '当然可以！我们欢迎所有浙工大人分享他们的健康故事。您可以通过"浙工大健康人"页面提交您的故事。'
               },
               {
                 q: '向阳健康是否提供一对一咨询？',

@@ -6,7 +6,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 /**
- * 工大人卡片骨架屏
+ * 浙工大人卡片骨架屏
  */
 export function UserCardSkeleton() {
   return (
@@ -26,7 +26,7 @@ export function UserCardSkeleton() {
 }
 
 /**
- * 工大人区块骨架屏（4个卡片）
+ * 浙工大人区块骨架屏（4个卡片）
  */
 export function UsersSectionSkeleton() {
   return (
@@ -101,7 +101,7 @@ export function ArticlesSectionSkeleton() {
 export function HomePageSkeleton() {
   return (
     <div className="space-y-16">
-      {/* 今日工大人骨架屏 */}
+      {/* 今日浙工大人骨架屏 */}
       <section className="py-20 bg-gradient-to-b from-slate-900 to-slate-800">
         <div className="container">
           <div className="text-center mb-16">

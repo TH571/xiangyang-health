@@ -1,6 +1,6 @@
 /**
  * Home Page
- * 首页 - 包含 Hero、今日工大人、文章分类等主要内容
+ * 首页 - 包含 Hero、今日浙工大人、文章分类等主要内容
  * Design Philosophy: 现代健康主义 - 温暖、清晰、有机流动
  */
 
@@ -92,7 +92,7 @@ export default function Home() {
       title: e.title,
       avatar: getImageUrl(e.avatar) || '',
       description: e.achievements || e.introduction?.substring(0, 50) || "专业健康专家",
-      quote: "守护每一位工大人的健康"
+      quote: "守护每一位浙工大人的健康"
     }));
     setUsers(mappedUsers);
 
@@ -254,7 +254,7 @@ export default function Home() {
                   </span>
                 </h1>
                 <p className="text-lg md:text-xl text-slate-700 leading-relaxed">
-                  浙工大大健康校友会，守护工大人在健康之路上温暖前行
+                  浙工大大健康校友会，守护浙工大人在健康之路上温暖前行
                 </p>
               </div>
 
@@ -357,10 +357,10 @@ export default function Home() {
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">
-              今日工大人
+              今日浙工大人
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-              每天都有新的健康故事，来自我们的工大人社区
+              每天都有新的健康故事，来自我们的浙工大人社区
             </p>
           </div>
 
@@ -400,7 +400,7 @@ export default function Home() {
               variant="outline"
               className="border-2 border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white hover:shadow-lg hover:shadow-orange-400/25 font-semibold px-8 transition-all duration-300"
             >
-              查看更多工大人
+              查看更多浙工大人
               <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1" />
             </Button>
           </div>

@@ -25,7 +25,7 @@ export function Footer() {
                 <span className="font-bold text-white text-lg">向阳健康</span>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed hidden md:block">
-                以光为引，以知为翼，守护工大人在健康之路上温暖前行
+                以光为引，以知为翼，守护浙工大人在健康之路上温暖前行
               </p>
             </div>
           </div>

@@ -14,7 +14,7 @@ interface HeaderProps {
 
 const navItems = [
   { label: "主页", href: "/" },
-  { label: "健康工大人", href: "/workers" },
+  { label: "浙工大健康人", href: "/workers" },
   { label: "向阳优品", href: "/selection" },
   { label: "健康讲堂", href: "/lectures" },
   { label: "健康前沿", href: "/frontiers" },

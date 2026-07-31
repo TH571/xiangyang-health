@@ -64,7 +64,7 @@ export function ExpertList() {
     return (
         <AdminLayout>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">健康工大人管理</h2>
+                <h2 className="text-2xl font-bold">浙工大健康人管理</h2>
                 <Button onClick={() => setLocation("/admin/experts/new")} className="bg-orange-600 hover:bg-orange-700">
                     <Plus className="w-4 h-4 mr-2" /> 新增专家
                 </Button>
