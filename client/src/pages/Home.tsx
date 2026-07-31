@@ -221,7 +221,7 @@ export default function Home() {
       <section
         className="relative py-12 md:py-24 overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50"
         style={{
-          backgroundImage: "url(https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/hero-bg.jpg)",
+          backgroundImage: "url(https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/hero-bg.webp)",
           backgroundSize: "cover",
           backgroundPosition: "center center",
           backgroundAttachment: "fixed",
