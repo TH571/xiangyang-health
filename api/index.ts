@@ -67,6 +67,14 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.use(cors({ origin: (o, cb) => { if (!o) return cb(null, true); cb(null, true); }, credentials: true }));
 app.use(express.json({ limit: "50mb" }));
 
+// 缓存中间件：GET 请求缓存 60 秒（CDN），客户端缓存 10 秒
+app.use((req, res, next) => {
+  if (req.method === "GET" && !req.path.startsWith("/api/auth")) {
+    res.set("Cache-Control", "public, s-maxage=60, max-age=10");
+  }
+  next();
+});
+
 const auth = (req: any, res: any, next: any) => {
   try { req.user = jwt.verify(req.headers.authorization?.split(" ")[1] || "", JWT_SECRET); next(); }
   catch { res.status(401).json({ error: "Unauthorized" }); }
