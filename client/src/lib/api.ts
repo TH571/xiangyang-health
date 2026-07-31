@@ -110,7 +110,7 @@ uploadApi.interceptors.response.use(
  * @returns Full URL for the image
  */
 export function getImageUrl(path: string | null | undefined): string {
-  if (!path) return '';
+  if (!path || path === 'undefined' || path === 'null') return '';
 
   // If it's already a full URL (http/https), return as-is
   if (path.startsWith('http://') || path.startsWith('https://')) {
