@@ -26,7 +26,7 @@ async function uploadToOSS(file: Buffer, filename: string, type: string = "defau
   return `${OSS_DOMAIN}/${key}`;
 }
 function getContentType(ext: string): string {
-  const t: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".gif": "image/gif", ".webp": "image/webp", ".mp4": "video/mp4" };
+  const t: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".gif": "image/gif", ".webp": "image/webp", ".avif": "image/avif", ".heic": "image/heic", ".heif": "image/heif", ".bmp": "image/bmp", ".svg": "image/svg+xml", ".tiff": "image/tiff", ".tif": "image/tiff", ".ico": "image/x-icon", ".mp4": "video/mp4", ".webm": "video/webm", ".pdf": "application/pdf", ".doc": "application/msword", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".xls": "application/vnd.ms-excel", ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".zip": "application/zip" };
   return t[ext.toLowerCase()] || "application/octet-stream";
 }
 
@@ -112,7 +112,7 @@ app.post("/api/upload-url", auth, async (req, res) => {
     const key = `${type || "default"}/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
     const contentType = getContentType(ext);
     const signedUrl = getOSS().signatureUrl(key, { expires: 3600, method: "PUT", "content-type": contentType });
-    res.json({ uploadUrl: signedUrl, publicUrl: `${OSS_DOMAIN}/${key}` });
+    res.json({ uploadUrl: signedUrl, publicUrl: `${OSS_DOMAIN}/${key}`, contentType });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
   }
