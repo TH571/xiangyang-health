@@ -148,34 +148,4 @@ app.post("/api/daily-tip", auth, async (req, res) => { try { res.json(await pris
 app.get("/api/daily-tips", auth, async (req, res) => { res.json(await prisma.dailyTip.findMany({ orderBy: { date: "desc" } })); });
 app.delete("/api/daily-tips/:id", auth, async (req, res) => { try { await prisma.dailyTip.delete({ where: { id: Number(req.params.id) } }); res.json({ success: true }); } catch { res.status(500).json({ error: "Failed to delete" }); } });
 
-// == 临时发布端点 ==
-app.get("/api/publish-article", auth, async (req, res) => {
-  try {
-    const existing = await prisma.news.findFirst({ where: { title: "聚力大健康，共探新赛道" } });
-    if (existing) return res.json({ success: true, id: existing.id, message: "文章已存在" });
-
-    const cats = await prisma.category.findMany({ where: { type: "news" } });
-
-    const content = `<p>5月24日，一场主题为"健康领航 校友同心，共绘浙工大美好生活新图景"为主题的浙工大大健康校友首次交流沙龙在浙江省知联会顺利举行。来自不同专业、不同区域、不同年级的浙工大校友齐聚一堂，围绕中医药创新、精准健康管理、产业落地等核心议题展开深度交流。本次"大健康领域校友经验分享交流会"聚焦大健康产业前沿的思想，不仅搭建了跨界的对话平台，更为后续校友资源的协同与整合拉开了序幕。</p>
-<p>活动伊始，浙工大生态工业创新研究院院长孙培龙校友首先介绍了大健康校友分会的规划蓝图与愿景。他强调，组织的成立旨在从"大健康"视角出发，一方面为全体校友的身心健康提供专业服务，另一方面也为从事大健康行业的校友企业提供更广阔的交流与展示平台。</p>
-<p>原浙工大杭州校友会秘书长刘国平与丁志宏在致辞中高度肯定了这一举措。他们表示，健康是美好生活的基石，组建大健康分会不仅是响应国家号召，更是连接校友、服务社会的必要桥梁。</p>
-<p>交流会上，思想火花不断迸发，呈现出三大鲜明亮点：</p>
-<h2>理念升级：从"被动治疗"到"主动健康"</h2>
-<p>有校友在会上率先提出"主动健康"理念，引发了在场嘉宾的强烈共鸣。这一理念倡导将健康管理的关口前移，标志着校友们在健康管理认知上实现了重要突破。</p>
-<h2>模式创新：揭秘"无药式"中医调理</h2>
-<p>针对特色中医项目的分享成为全场焦点。依托资深专家25年临床经验打造的"137治愈体系"，提出了以激发人体自愈力为核心的新模式。该体系从物质、能量、信息三个维度发力，融合中医理疗、音疗、营养干预等七大技术，致力于打造无药式中医调理的新路径。</p>
-<h2>科技赋能：前沿技术聚焦"精准干预"</h2>
-<p>在技术层面，多位校友展示了大健康领域的科创实力。从食品营养、医药法务到生物检测，分享内容涵盖了慢病干预、抗衰科研等热门方向。特别是关于端粒长度与生物年龄监测、健康检测设备研发以及慢病与减重产品的开发，展现了校友企业在精准健康领域的深厚积淀。</p>
-<p>与会校友达成共识，一致认为，在国家大力扶持中医药传承创新、全民健康意识觉醒的背景下，中医调理、主动健康及精准健康管理将迎来高质量发展机遇。后续，大健康校友分会将充分发挥平台优势，链接母校丰富的科研资源，整合行业资源，搭建起"产学研用"的高效对接桥梁。通过助力校友企业协同发展，以专业力量守护大众身心健康，共同推动大健康产业稳步前行，在"健康中国"的宏伟目标中，发出浙工大的声音。</p>
-<p>此次交流会也是浙工大"美好生活"板块中"健"板块的重要探索，充分表达了校友们对构建美好生活的热切愿望与责任担当。</p>`;
-
-    const news = await prisma.news.create({
-      data: { title: "聚力大健康，共探新赛道", author: "向阳健康", authorTitle: "健康科普", content, date: new Date("2026-05-24"), categoryId: cats[0]?.id || 1 }
-    });
-    res.json({ success: true, id: news.id, url: "https://xyjk.ren/article/" + news.id });
-  } catch (e: any) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
 export default app;
