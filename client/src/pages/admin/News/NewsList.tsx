@@ -18,7 +18,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { api, uploadApi, getImageUrl } from "@/lib/api";
+import { api, uploadApi, uploadFileDirect, getImageUrl } from "@/lib/api";
 import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
 
 interface News {
@@ -146,27 +146,19 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
     const handleUploadCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const data = new FormData();
-        data.append("file", file);
         try {
-            const res = await uploadApi.post("/upload?type=news", data);
-            setFormData({ ...formData, cover: res.data.url });
+            const url = await uploadFileDirect(file, "news");
+            setFormData({ ...formData, cover: url });
             toast.success("上传成功");
         } catch { toast.error("上传失败"); }
     };
 
     const handleImageUpload = async (file: File) => {
-        const data = new FormData();
-        data.append('file', file);
-        const res = await uploadApi.post('/upload?type=news', data);
-        return res.data.url;
+        return await uploadFileDirect(file, "news");
     };
 
     const handleVideoUpload = async (file: File) => {
-        const data = new FormData();
-        data.append('file', file);
-        const res = await uploadApi.post('/upload?type=video', data);
-        return res.data.url;
+        return await uploadFileDirect(file, "video");
     };
 
     const modules = useMemo(() => ({

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
-import { api, uploadApi, getImageUrl } from "@/lib/api";
+import { api, uploadApi, uploadFileDirect, getImageUrl } from "@/lib/api";
 
 export function Settings() {
     const { user, token, updateUser } = useAuth()!;
@@ -37,11 +37,9 @@ export function Settings() {
         // Reset input value to allow re-uploading same file if needed
         e.target.value = '';
 
-        const data = new FormData();
-        data.append("file", file);
         try {
-            const res = await uploadApi.post("/upload?type=avatar", data);
-            setAvatar(res.data.url);
+            const url = await uploadFileDirect(file, "avatar");
+            setAvatar(url);
             toast.success("上传成功");
         } catch (error: any) {
             console.error(error);

@@ -14,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { api, uploadApi, getImageUrl } from "@/lib/api";
+import { api, uploadApi, uploadFileDirect, getImageUrl } from "@/lib/api";
 import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
 import { SmallAvatarPlaceholder } from "@/components/Placeholder";
 
@@ -145,11 +145,9 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
     const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const data = new FormData();
-        data.append("file", file);
         try {
-            const res = await uploadApi.post("/upload?type=avatar", data);
-            setFormData({ ...formData, avatar: res.data.url });
+            const url = await uploadFileDirect(file, "avatar");
+            setFormData({ ...formData, avatar: url });
             toast.success("上传成功");
         } catch { toast.error("上传失败"); }
     };

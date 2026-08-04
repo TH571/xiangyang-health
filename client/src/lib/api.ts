@@ -109,6 +109,30 @@ uploadApi.interceptors.response.use(
  * @param path - The image path from database (e.g., https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/xxx.jpg or /uploads/xxx.jpg)
  * @returns Full URL for the image
  */
+/**
+ * 浏览器直传 OSS：获取签名 URL 后直接 PUT 上传
+ * 不走 Vercel 函数中转，避免跨洲超时
+ */
+export async function uploadFileDirect(file: File, type: string = "default"): Promise<string> {
+  const token = localStorage.getItem('admin_token');
+  const res = await fetch(`${BASE_URL}/upload-url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ filename: file.name, type }),
+  });
+  const data = await res.json();
+  if (!data.uploadUrl) throw new Error(data.error || '获取上传链接失败');
+
+  const uploadRes = await fetch(data.uploadUrl, {
+    method: 'PUT',
+    body: file,
+    headers: { 'Content-Type': file.type },
+  });
+  if (!uploadRes.ok) throw new Error('OSS 上传失败');
+
+  return data.publicUrl;
+}
+
 export function getImageUrl(path: string | null | undefined): string {
   if (!path || path === 'undefined' || path === 'null') return '';
 

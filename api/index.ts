@@ -103,6 +103,19 @@ app.post("/api/upload", auth, upload.single("file"), async (req, res) => {
   try { res.json({ url: await uploadToOSS(req.file.buffer, req.file.originalname, String(req.query.type || "default")) }); }
   catch { res.status(500).json({ error: "Upload failed" }); }
 });
+// 浏览器直传 OSS：生成签名 URL
+app.post("/api/upload-url", auth, async (req, res) => {
+  try {
+    const { filename, type } = req.body;
+    if (!filename) return res.status(400).json({ error: "Filename required" });
+    const ext = path.extname(filename);
+    const key = `${type || "default"}/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+    const signedUrl = getOSS().signatureUrl(key, { expires: 3600, method: "PUT" });
+    res.json({ uploadUrl: signedUrl, publicUrl: `${OSS_DOMAIN}/${key}` });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
 app.get("/api/categories", async (req, res) => { res.json(await prisma.category.findMany({ where: req.query.type ? { type: String(req.query.type) } : {}, orderBy: { createdAt: "desc" } })); });
 app.post("/api/categories", auth, async (req, res) => { try { res.json(await prisma.category.create({ data: req.body })); } catch { res.status(500).json({ error: "Failed to create" }); } });
 app.put("/api/categories/:id", auth, async (req, res) => { try { res.json(await prisma.category.update({ where: { id: Number(req.params.id) }, data: req.body })); } catch { res.status(500).json({ error: "Failed to update" }); } });
