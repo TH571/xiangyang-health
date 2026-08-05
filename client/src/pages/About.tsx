@@ -37,7 +37,7 @@ const teamMembers: TeamMember[] = [
     id: '3',
     name: '葛铁汉',
     role: '',
-    bio: '浙工大校友，健康照明专家',
+    bio: '浙工大校友，健康管理师',
     avatar: 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/logo-1785899264896.png'
   },
   {
