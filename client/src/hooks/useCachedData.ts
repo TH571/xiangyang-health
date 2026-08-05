@@ -82,7 +82,19 @@ export function useCachedData<T>(
     }
   }, [fetchFn, writeCache]);
 
-  // 初始加载 - Cache-First 策略
+  // 检查全局刷新标记
+  const shouldRevalidate = () => {
+    try {
+      return sessionStorage.getItem(`${CACHE_PREFIX}_revalidate`) === 'true';
+    } catch { return false; }
+  };
+
+  // 清除全局刷新标记
+  const clearRevalidateFlag = () => {
+    try { sessionStorage.removeItem(`${CACHE_PREFIX}_revalidate`); } catch { /* ignore */ }
+  };
+
+  // 初始加载 - Cache-First 策略，但有全局刷新标记时强制请求
   useEffect(() => {
     if (!enabled) {
       setLoading(false);
@@ -90,8 +102,11 @@ export function useCachedData<T>(
     }
 
     const loadData = async () => {
-      // 先读取缓存
-      const cached = readCache();
+      // 检查是否有全局刷新标记
+      const forceRefresh = shouldRevalidate();
+
+      // 先读取缓存（有刷新标记时跳过缓存）
+      const cached = !forceRefresh ? readCache() : null;
 
       // 有缓存：直接使用，不发请求
       if (cached) {
@@ -100,7 +115,7 @@ export function useCachedData<T>(
         return;
       }
 
-      // 无缓存：发起请求
+      // 无缓存或强制刷新：发起请求
       try {
         const freshData = await fetchFn();
         setData(freshData);
@@ -109,6 +124,7 @@ export function useCachedData<T>(
         setError(err as Error);
         console.error('Data fetch error:', err);
       } finally {
+        clearRevalidateFlag();
         setLoading(false);
       }
     };
@@ -127,6 +143,7 @@ export function useCachedData<T>(
 
 /**
  * 清除所有缓存（用于数据更新后）
+ * 同时设置全局刷新标记，下次页面加载时会强制请求最新数据
  */
 export function clearAllCache() {
   const keys = Object.keys(sessionStorage);
@@ -135,6 +152,8 @@ export function clearAllCache() {
       sessionStorage.removeItem(key);
     }
   });
+  // 设置全局刷新标记，防止页面切换时读到旧缓存
+  try { sessionStorage.setItem(`${CACHE_PREFIX}_revalidate`, 'true'); } catch { /* ignore */ }
 }
 
 /**
