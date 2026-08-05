@@ -112,7 +112,7 @@ export function HomePageSkeleton() {
         </div>
       </section>
 
-      {/* 健康前沿骨架屏 */}
+      {/* 健康NEWS骨架屏 */}
       <section className="py-20 bg-white">
         <div className="container">
           <div className="mb-12">

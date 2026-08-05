@@ -17,7 +17,7 @@ const navItems = [
   { label: "浙工大健康人", href: "/workers" },
   { label: "向阳优品", href: "/selection" },
   { label: "健康讲堂", href: "/lectures" },
-  { label: "健康前沿", href: "/frontiers" },
+  { label: "健康NEWS", href: "/frontiers" },
   { label: "健康科普", href: "/science" },
   { label: "关于我们", href: "/about" },
 ];

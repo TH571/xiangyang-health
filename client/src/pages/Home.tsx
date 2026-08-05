@@ -416,7 +416,7 @@ export default function Home() {
               前沿研究
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-4 tracking-tight">
-              健康前沿
+              健康NEWS
             </h2>
             <p className="text-slate-600 max-w-2xl text-lg leading-relaxed">
               最新的健康研究和科学发现，帮助您了解最前沿的健康知识
@@ -457,7 +457,7 @@ export default function Home() {
               onClick={() => navigate("/frontiers")}
               className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group"
             >
-              查看全部健康前沿
+              查看全部健康NEWS
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
             </Button>
           </div>

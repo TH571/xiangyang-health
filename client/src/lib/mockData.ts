@@ -144,7 +144,7 @@ export const mockArticles: Article[] = [
 export const mockCategories: Category[] = [
   {
     id: 'frontiers',
-    name: '健康前沿',
+    name: '健康NEWS',
     slug: 'health-frontiers',
     description: '最新的健康研究和科学发现'
   },

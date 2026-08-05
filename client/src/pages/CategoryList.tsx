@@ -22,7 +22,7 @@ interface CategoryListProps {
 
 const categoryConfig = {
   frontiers: {
-    name: '健康前沿',
+    name: '健康NEWS',
     description: '最新的健康研究和科学发现',
     color: 'from-orange-600 to-red-600'
   },
