@@ -96,14 +96,10 @@ export default function Home() {
     }));
     setUsers(mappedUsers);
 
-    // Map News to Articles - 添加空值检查
+    // Map News to Articles - 用 categoryId 匹配
+    const categoryIdMap: Record<number, ArticleCategory> = { 1: "science", 2: "frontiers", 3: "lectures" };
     const mappedArticles = (newsData || []).map((n: any) => {
-      let category: ArticleCategory = "science"; // default
-      const catName = n.category?.name || "";
-      if (catName.includes("前沿") || catName === "frontiers") category = "frontiers";
-      else if (catName.includes("讲座") || catName.includes("讲堂") || catName === "lectures") category = "lectures";
-      else if (catName.includes("科普") || catName === "science") category = "science";
-
+      const category: ArticleCategory = categoryIdMap[n.categoryId] || "science";
       return {
         id: String(n.id),
         title: n.title,

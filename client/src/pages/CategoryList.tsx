@@ -61,15 +61,17 @@ export function CategoryListPage({ category }: CategoryListProps) {
     fetchNews
   );
 
+  const categoryIdMap: Record<string, number> = {
+    frontiers: 2,   // 健康NEWS
+    lectures: 3,    // 健康讲堂
+    science: 1,     // 健康科普
+  };
+  const targetCategoryId = categoryIdMap[category];
+
   // 当新闻数据变化时更新文章列表
   useEffect(() => {
-    // Filter based on category loosely - 添加空值检查
     const filtered = (newsData || []).filter((n: any) => {
-      const catName = n.category?.name || "";
-      if (category === "frontiers") return catName.includes("前沿") || catName === "frontiers";
-      if (category === "lectures") return catName.includes("讲座") || catName.includes("讲堂") || catName === "lectures";
-      if (category === "science") return catName.includes("科普") || catName === "science";
-      return false;
+      return n.categoryId === targetCategoryId;
     });
 
     const mappedArticles = filtered.map((n: any) => ({
