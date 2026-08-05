@@ -74,7 +74,7 @@ export function AboutPage() {
 
           <h1 className="text-4xl md:text-5xl font-bold mb-4">关于向阳健康</h1>
           <p className="text-lg text-white/90 max-w-2xl">
-            向阳健康是浙江工业大学大健康校友会的官方网站，我们的使命是守护每一位浙工大人的健康，让健康成为生活的习惯
+            向阳健康是浙江工业大学大健康校友联盟的官方网站，我们的使命是守护每一位浙工大人的健康，让健康成为生活的习惯
           </p>
         </div>
       </section>
@@ -132,7 +132,7 @@ export function AboutPage() {
             <div className="bg-white rounded-lg p-8 border-l-4 border-orange-600">
               <h3 className="text-xl font-bold text-slate-900 mb-3">从一个想法开始</h3>
               <p className="text-slate-600 leading-relaxed">
-              浙工大生物工程学院、食品学院、环境学院等优秀学院，培育了一批又一批从事大健康行业的校友，随着人们对健康的愈来愈关注，因此有了组建大健康校友会的想法——用科学的方法和温暖的陪伴，帮助浙工大人越来越健康。
+              浙工大生物工程学院、食品学院、环境学院等优秀学院，培育了一批又一批从事大健康行业的校友，随着人们对健康的愈来愈关注，因此有了组建大健康校友联盟的想法——用科学的方法和温暖的陪伴，帮助浙工大人越来越健康。
               </p>
             </div>
 
