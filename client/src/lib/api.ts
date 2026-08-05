@@ -121,16 +121,31 @@ export async function uploadFileDirect(file: File, type: string = "default"): Pr
     body: JSON.stringify({ filename: file.name, type, mimeType: file.type || undefined }),
   });
   const data = await res.json();
-  if (!data.uploadUrl) throw new Error(data.error || '获取上传链接失败');
+  if (!data.uploadUrl) throw new Error((data.error || '获取上传链接失败') + ' (1)');
 
-  // 用后端返回的 contentType（即浏览器 file.type）发送，保证与签名一致
-  const uploadRes = await fetch(data.uploadUrl, {
-    method: 'PUT', body: file,
-    headers: { 'Content-Type': data.contentType },
+  // 尝试方案A：fetch 直传 OSS（CORS 可能被旁路由拦截）
+  try {
+    const uploadRes = await fetch(data.uploadUrl, {
+      method: 'PUT', body: file,
+      headers: { 'Content-Type': data.contentType },
+    });
+    if (uploadRes.ok) return data.publicUrl;
+  } catch (e) {
+    console.warn('直传 OSS 失败，切换到 Vercel 中转:', e);
+  }
+
+  // 方案B：通过 Vercel 函数中转（网络已恢复，设 60 秒超时）
+  const formData = new FormData();
+  formData.append('file', file);
+  const token2 = localStorage.getItem('admin_token');
+  const vercelRes = await fetch(`${BASE_URL}/upload?type=${type}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token2}` },
+    body: formData,
   });
-  if (!uploadRes.ok) throw new Error('OSS 上传失败');
-
-  return data.publicUrl;
+  const vercelData = await vercelRes.json();
+  if (!vercelData.url) throw new Error(vercelData.error || 'OSS 上传失败 (2)');
+  return vercelData.url;
 }
 
 export function getImageUrl(path: string | null | undefined): string {
