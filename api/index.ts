@@ -310,7 +310,12 @@ app.post("/api/products", auth, async (req, res) => { try { const { name, rating
 app.put("/api/products/:id", auth, async (req, res) => { try { const d = req.body; res.json(await prisma.product.update({ where: { id: Number(req.params.id) }, data: { ...(d.name !== undefined && { name: d.name }), ...(d.rating !== undefined && { rating: d.rating }), ...(d.image !== undefined && { image: d.image }), ...(d.introduction !== undefined && { introduction: d.introduction }), ...(d.url !== undefined && { url: d.url }), ...(d.price !== undefined && { price: d.price }), ...(d.categoryId !== undefined && { categoryId: d.categoryId }) } })); } catch { res.status(500).json({ error: "Failed to update" }); } });
 app.delete("/api/products/:id", auth, async (req, res) => { try { await prisma.product.delete({ where: { id: Number(req.params.id) } }); res.json({ success: true }); } catch { res.status(500).json({ error: "Failed to delete" }); } });
 app.get("/api/admins", auth, async (req, res) => { res.json(await prisma.admin.findMany({ select: { id: true, username: true, nickname: true, title: true, avatar: true, createdAt: true } })); });
-app.post("/api/admins", auth, async (req, res) => { try { res.json(await prisma.admin.create({ data: { username: req.body.username, password: await bcrypt.hash(req.body.password, 10) } })); } catch { res.status(500).json({ error: "Failed to create" }); } });
+app.post("/api/admins", auth, async (req, res) => {
+  try {
+    const admin = await prisma.admin.create({ data: { username: req.body.username, password: await bcrypt.hash(req.body.password, 10) } });
+    res.json({ id: admin.id, username: admin.username });
+  } catch { res.status(500).json({ error: "Failed to create" }); }
+});
 app.put("/api/admins/:id/password", auth, async (req, res) => {
   try {
     const { password, oldPassword } = req.body;
@@ -326,7 +331,18 @@ app.put("/api/admins/:id/password", auth, async (req, res) => {
   } catch { res.status(500).json({ error: "Failed to change" }); }
 });
 app.get("/api/admins/:id", auth, async (req, res) => { const a = await prisma.admin.findUnique({ where: { id: Number(req.params.id) }, select: { id: true, username: true, nickname: true, title: true, avatar: true, createdAt: true } }); if (!a) return res.status(404).json({ error: "Not found" }); res.json(a); });
-app.put("/api/admins/:id", auth, async (req, res) => { try { const { nickname, title, avatar } = req.body; res.json(await prisma.admin.update({ where: { id: Number(req.params.id) }, data: { nickname, title, avatar } })); } catch { res.status(500).json({ error: "Failed to update" }); } });
+app.put("/api/admins/:id", auth, async (req, res) => {
+  try {
+    const { nickname, title, avatar } = req.body;
+    // 只返回安全字段，绝不回传 password 哈希
+    const admin = await prisma.admin.update({
+      where: { id: Number(req.params.id) },
+      data: { nickname, title, avatar },
+      select: { id: true, username: true, nickname: true, title: true, avatar: true, createdAt: true },
+    });
+    res.json(admin);
+  } catch { res.status(500).json({ error: "Failed to update" }); }
+});
 app.get("/api/daily-tip", async (req, res) => {
   try {
     const today = new Date(); today.setHours(0, 0, 0, 0);
