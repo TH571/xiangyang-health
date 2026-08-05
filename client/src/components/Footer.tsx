@@ -64,6 +64,15 @@ export function Footer() {
               <ul className="space-y-2 md:space-y-3 text-xs md:text-sm">
                 <li>
                   <button
+                    onClick={() => navigate("/services")}
+                    className="hover:text-orange-400 transition-colors duration-200 relative group"
+                  >
+                    健康服务
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
+                  </button>
+                </li>
+                <li>
+                  <button
                     onClick={() => navigate("/selection")}
                     className="hover:text-orange-400 transition-colors duration-200 relative group"
                   >
