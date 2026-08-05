@@ -197,15 +197,16 @@ export function AboutPage() {
             </div>
           </div>
 
-          {/* Contact Form CTA */}
           <div className="mt-12 text-center">
             <p className="text-white/90 mb-6">有任何问题或建议？我们很乐意听到您的声音</p>
-            <Button
-              size="lg"
-              className="bg-white text-purple-600 hover:bg-gray-100 font-semibold"
-            >
-              发送消息
-            </Button>
+            <a href="mailto:info-xyjk@xyjk.ren">
+              <Button
+                size="lg"
+                className="bg-white text-purple-600 hover:bg-gray-100 font-semibold"
+              >
+                发送邮件
+              </Button>
+            </a>
           </div>
         </div>
       </section>
