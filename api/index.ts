@@ -161,6 +161,29 @@ app.get("/api/daily-tip", async (req, res) => {
 });
 app.post("/api/daily-tip", auth, async (req, res) => { try { res.json(await prisma.dailyTip.create({ data: { content: req.body.content, source: req.body.source || "向阳健康", date: new Date() } })); } catch { res.status(500).json({ error: "Failed to create" }); } });
 app.get("/api/daily-tips", auth, async (req, res) => { res.json(await prisma.dailyTip.findMany({ orderBy: { date: "desc" } })); });
+app.put("/api/daily-tips/:id", auth, async (req, res) => { try { const d = req.body; res.json(await prisma.dailyTip.update({ where: { id: Number(req.params.id) }, data: { ...(d.content !== undefined && { content: d.content }), ...(d.source !== undefined && { source: d.source }), ...(d.isActive !== undefined && { isActive: Boolean(d.isActive) }) } })); } catch { res.status(500).json({ error: "Failed to update" }); } });
 app.delete("/api/daily-tips/:id", auth, async (req, res) => { try { await prisma.dailyTip.delete({ where: { id: Number(req.params.id) } }); res.json({ success: true }); } catch { res.status(500).json({ error: "Failed to delete" }); } });
+
+// OSS 文件列表
+app.get("/api/media", auth, async (req, res) => {
+  try {
+    const prefix = (req.query.prefix as string) || "";
+    const marker = (req.query.marker as string) || "";
+    const maxKeys = Math.min(Number(req.query.maxKeys) || 50, 200);
+    const result = await getOSS().list({ prefix, marker, "max-keys": maxKeys }, {});
+    res.json({
+      objects: (result.objects || []).map((o: any) => ({
+        key: o.name,
+        url: `${OSS_DOMAIN}/${o.name}`,
+        size: o.size,
+        lastModified: o.lastModified,
+        type: o.name.match(/\.(\w+)$/)?.[1]?.toLowerCase() || "",
+      })),
+      prefixes: result.prefixes || [],
+      nextMarker: result.nextMarker || null,
+      isTruncated: result.isTruncated,
+    });
+  } catch (e: any) { res.status(500).json({ error: "Failed to list media", detail: e.message }); }
+});
 
 export default app;

@@ -8,6 +8,8 @@ import {
     ShoppingBag,
     FolderTree,
     Shield,
+    Lightbulb,
+    Image,
     LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +23,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         { href: "/admin/news", label: "新闻内容", icon: Newspaper },
         { href: "/admin/experts", label: "浙工大健康人", icon: UserRound },
         { href: "/admin/selection", label: "向阳优品", icon: ShoppingBag },
+        { href: "/admin/daily-tips", label: "健康贴士", icon: Lightbulb },
+        { href: "/admin/media", label: "媒体管理", icon: Image },
         { href: "/admin/categories", label: "分类管理", icon: FolderTree },
         { href: "/admin/settings", label: "管理员设置", icon: Shield },
     ];

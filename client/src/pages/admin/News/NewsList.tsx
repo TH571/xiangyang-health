@@ -16,10 +16,32 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Plus, ArrowLeft, Upload } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowLeft, Upload, Search, Eye, X } from "lucide-react";
 import { toast } from "sonner";
 import { api, uploadApi, uploadFileDirect, getImageUrl } from "@/lib/api";
 import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
+
+// ===== Preview Modal =====
+function PreviewModal({ open, onClose, title, content }: { open: boolean; onClose: () => void; title?: string; content?: string }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col m-4" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <h3 className="font-semibold text-slate-900 truncate">{title || "文章预览"}</h3>
+          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded transition-colors">
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">
+          <article className="prose prose-slate max-w-none prose-img:max-w-full prose-img:mx-auto prose-img:my-4">
+            <div dangerouslySetInnerHTML={{ __html: content || "" }} />
+          </article>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface News {
     id: number;
@@ -43,10 +65,20 @@ export function NewsList() {
     const { token } = useAuth()!;
     const [, setLocation] = useLocation();
 
+    // 搜索筛选状态
+    const [searchKeyword, setSearchKeyword] = useState("");
+    const [filterCategory, setFilterCategory] = useState("all");
+    const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+
     // 使用 useCallback 包装 fetchFn 避免无限循环
     const fetchNews = useCallback(async () => {
         const res = await api.get("/news");
         return res.data;
+    }, []);
+
+    // 加载分类列表
+    useEffect(() => {
+        api.get("/categories?type=news").then(res => setCategories(res.data)).catch(() => {});
     }, []);
 
     // 使用缓存 hook
@@ -54,6 +86,19 @@ export function NewsList() {
         'news_list',
         fetchNews
     );
+
+    // 前端筛选
+    const filteredNews = useMemo(() => {
+        let list = news || [];
+        if (searchKeyword.trim()) {
+            const kw = searchKeyword.toLowerCase();
+            list = list.filter(n => n.title.toLowerCase().includes(kw) || (n.author || "").toLowerCase().includes(kw));
+        }
+        if (filterCategory !== "all") {
+            list = list.filter(n => n.categoryId === Number(filterCategory));
+        }
+        return list;
+    }, [news, searchKeyword, filterCategory]);
 
     const handleDelete = async (id: number) => {
         if (!confirm("确定删除?")) return;
@@ -74,6 +119,31 @@ export function NewsList() {
                 </Button>
             </div>
 
+            {/* Search & Filter Bar */}
+            <div className="flex items-center gap-3 mb-4">
+                <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                        placeholder="搜索标题或作者..."
+                        value={searchKeyword}
+                        onChange={e => setSearchKeyword(e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                    <SelectTrigger className="w-40">
+                        <SelectValue placeholder="全部分类" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">全部分类</SelectItem>
+                        {categories.map(c => <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+                <div className="text-sm text-slate-500">
+                    共 <span className="font-semibold text-slate-700">{filteredNews.length}</span> 条
+                </div>
+            </div>
+
             <div className="bg-white rounded-lg border shadow-sm">
                 <Table>
                     <TableHeader>
@@ -86,7 +156,7 @@ export function NewsList() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {news?.map(item => (
+                        {filteredNews?.map(item => (
                             <TableRow key={item.id}>
                                 <TableCell className="font-medium max-w-[300px] truncate">
                                     <a
@@ -111,7 +181,7 @@ export function NewsList() {
                                 </TableCell>
                             </TableRow>
                         ))}
-                        {(!news || news.length === 0) && !loading && <TableRow><TableCell colSpan={5} className="text-center py-6">暂无数据</TableCell></TableRow>}
+                        {(!filteredNews || filteredNews.length === 0) && !loading && <TableRow><TableCell colSpan={5} className="text-center py-6">暂无数据</TableCell></TableRow>}
                     </TableBody>
                 </Table>
             </div>
@@ -124,6 +194,7 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
     const [formData, setFormData] = useState<Partial<News>>({ content: "", author: user?.username || "", authorTitle: user?.title || "", authorAvatar: user?.avatar || "" });
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
     const [location, setLocation] = useLocation();
 
     // Extract ID from URL if params is empty (wouter issue sometimes)
@@ -284,11 +355,22 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
 
                     <div className="flex justify-end gap-4 pt-4 border-t">
                         <Button type="button" variant="outline" onClick={() => setLocation("/admin/news")}>取消</Button>
+                        <Button type="button" variant="secondary" onClick={() => setShowPreview(true)} disabled={!formData.content}>
+                            <Eye className="w-4 h-4 mr-2" /> 预览
+                        </Button>
                         <Button type="submit" className="bg-orange-600 hover:bg-orange-700" disabled={loading}>
                             {loading ? "保存中..." : "保存新闻"}
                         </Button>
                     </div>
                 </form>
+
+                {/* Preview Modal */}
+                <PreviewModal
+                    open={showPreview}
+                    onClose={() => setShowPreview(false)}
+                    title={formData.title}
+                    content={formData.content}
+                />
             </div>
         </AdminLayout>
     );

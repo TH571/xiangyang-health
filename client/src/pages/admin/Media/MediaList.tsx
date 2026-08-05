@@ -1,0 +1,227 @@
+import { useState, useEffect, useCallback } from "react";
+import { AdminLayout } from "../Layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
+import { Image, File, Film, RefreshCw, ExternalLink, Copy, ChevronLeft, ChevronRight, FolderOpen } from "lucide-react";
+
+interface MediaObject {
+  key: string;
+  url: string;
+  size: number;
+  lastModified: string;
+  type: string;
+}
+
+export function MediaList() {
+  const [objects, setObjects] = useState<MediaObject[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [prefix, setPrefix] = useState("");
+  const [currentPrefix, setCurrentPrefix] = useState("");
+  const [marker, setMarker] = useState<string | null>(null);
+  const [nextMarker, setNextMarker] = useState<string | null>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const [filterType, setFilterType] = useState("all");
+
+  const fetchMedia = useCallback(async (p: string, m: string | null) => {
+    setLoading(true);
+    try {
+      const res = await api.get("/media", { params: { prefix: p, marker: m || undefined, maxKeys: 50 } });
+      setObjects(res.data.objects || []);
+      setNextMarker(res.data.nextMarker);
+      setIsTruncated(res.data.isTruncated);
+      setCurrentPrefix(p);
+    } catch (e: any) {
+      toast.error("加载媒体文件失败: " + (e.message || "未知错误"));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchMedia("", null); }, [fetchMedia]);
+
+  const handleFilter = (p: string) => {
+    setPrefix(p);
+    setMarker(null);
+    fetchMedia(p, null);
+  };
+
+  const handleNext = () => {
+    if (nextMarker) {
+      setMarker(nextMarker);
+      fetchMedia(currentPrefix, nextMarker);
+    }
+  };
+
+  const handlePrev = () => {
+    setMarker(null);
+    fetchMedia(currentPrefix, null);
+  };
+
+  const handleCopyUrl = (url: string) => {
+    navigator.clipboard.writeText(url).then(() => toast.success("链接已复制")).catch(() => toast.error("复制失败"));
+  };
+
+  const filtered = filterType === "all" ? objects : objects.filter(o => o.type === filterType);
+  const imageTypes = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"];
+  const videoTypes = ["mp4", "webm", "mov", "avi"];
+
+  const getIcon = (type: string) => {
+    if (imageTypes.includes(type)) return <Image className="w-5 h-5 text-blue-500" />;
+    if (videoTypes.includes(type)) return <Film className="w-5 h-5 text-purple-500" />;
+    return <File className="w-5 h-5 text-slate-500" />;
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
+
+  const typeOptions = [
+    { value: "all", label: "全部类型" },
+    { value: "jpg", label: "JPEG" },
+    { value: "png", label: "PNG" },
+    { value: "gif", label: "GIF" },
+    { value: "webp", label: "WebP" },
+    { value: "mp4", label: "MP4" },
+    { value: "pdf", label: "PDF" },
+    { value: "docx", label: "DOCX" },
+  ];
+
+  return (
+    <AdminLayout>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-2xl font-bold">媒体管理</h2>
+          <p className="text-sm text-slate-500 mt-1">浏览 OSS 上已上传的图片、视频和文件</p>
+        </div>
+        <Button variant="outline" onClick={() => fetchMedia(currentPrefix, null)}>
+          <RefreshCw className="w-4 h-4 mr-2" /> 刷新
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-4 mb-6">
+        <div className="flex-1 relative">
+          <FolderOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            placeholder="按路径筛选 (如: news/, avatar/, product/)"
+            value={prefix}
+            onChange={e => setPrefix(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleFilter(prefix)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {typeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button variant="secondary" onClick={() => handleFilter(prefix)}>
+          筛选
+        </Button>
+      </div>
+
+      {/* Breadcrumb */}
+      <div className="text-sm text-slate-500 mb-4">
+        当前路径: <span className="font-mono text-slate-700">{currentPrefix || "(根目录)"}</span>
+        {currentPrefix && (
+          <button onClick={() => handleFilter("")} className="ml-2 text-orange-600 hover:underline">回到根目录</button>
+        )}
+      </div>
+
+      {/* Media Grid */}
+      <div className="bg-white rounded-lg border shadow-sm">
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-6">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-slate-100 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12 text-slate-500">该路径下没有媒体文件</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-6">
+              {filtered.map((obj) => (
+                <div
+                  key={obj.key}
+                  className="group relative bg-slate-50 rounded-lg border overflow-hidden hover:shadow-md transition-shadow"
+                >
+                  {/* Preview */}
+                  <div className="aspect-square flex items-center justify-center bg-slate-100 overflow-hidden">
+                    {imageTypes.includes(obj.type) ? (
+                      <img
+                        src={obj.url}
+                        alt={obj.key}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                          (e.target as HTMLImageElement).parentElement!.classList.add("flex", "items-center", "justify-center");
+                        }}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-slate-400">
+                        {getIcon(obj.type)}
+                        <span className="text-xs font-mono">.{obj.type}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Overlay Actions */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                    {imageTypes.includes(obj.type) && (
+                      <a href={obj.url} target="_blank" rel="noopener noreferrer"
+                        className="p-2 bg-white rounded-full hover:bg-orange-100 transition-colors">
+                        <ExternalLink className="w-4 h-4 text-slate-700" />
+                      </a>
+                    )}
+                    <button onClick={() => handleCopyUrl(obj.url)}
+                      className="p-2 bg-white rounded-full hover:bg-orange-100 transition-colors">
+                      <Copy className="w-4 h-4 text-slate-700" />
+                    </button>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-2">
+                    <div className="text-xs text-slate-700 truncate" title={obj.key.split("/").pop()}>
+                      {obj.key.split("/").pop()}
+                    </div>
+                    <div className="text-xs text-slate-400">{formatSize(obj.size)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+              <div className="text-sm text-slate-500">
+                共 {filtered.length} 个文件
+                {isTruncated && " (还有更多)"}
+              </div>
+              <div className="flex gap-2">
+                {marker && (
+                  <Button variant="outline" size="sm" onClick={handlePrev}>
+                    <ChevronLeft className="w-4 h-4 mr-1" /> 上一页
+                  </Button>
+                )}
+                {isTruncated && (
+                  <Button variant="outline" size="sm" onClick={handleNext}>
+                    下一页 <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </AdminLayout>
+  );
+}

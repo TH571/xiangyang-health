@@ -30,6 +30,8 @@ const ExpertEdit = lazy(() => import("./pages/admin/Experts/ExpertList").then(m 
 const SelectionList = lazy(() => import("./pages/admin/Selection/SelectionList").then(m => ({ default: m.SelectionList })));
 const SelectionEdit = lazy(() => import("./pages/admin/Selection/SelectionList").then(m => ({ default: m.SelectionEdit })));
 const Settings = lazy(() => import("./pages/admin/Settings/Settings").then(m => ({ default: m.Settings })));
+const DailyTipList = lazy(() => import("./pages/admin/DailyTips/DailyTipList").then(m => ({ default: m.DailyTipList })));
+const MediaList = lazy(() => import("./pages/admin/Media/MediaList").then(m => ({ default: m.MediaList })));
 
 // 页面加载占位符 - 简化为无占位符，直接显示空白
 function PageLoader() {
@@ -118,6 +120,9 @@ function Router() {
       <Route path="/admin/selection/:id" component={({ params }) => <Suspense fallback={<PageLoader />}><ProtectedRoute component={SelectionEdit} params={params} /></Suspense>} />
 
       <Route path="/admin/settings" component={() => <Suspense fallback={<PageLoader />}><ProtectedRoute component={Settings} /></Suspense>} />
+
+      <Route path="/admin/daily-tips" component={() => <Suspense fallback={<PageLoader />}><ProtectedRoute component={DailyTipList} /></Suspense>} />
+      <Route path="/admin/media" component={() => <Suspense fallback={<PageLoader />}><ProtectedRoute component={MediaList} /></Suspense>} />
 
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
