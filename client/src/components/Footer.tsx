@@ -55,15 +55,6 @@ export function Footer() {
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
                   </button>
                 </li>
-                <li>
-                  <button
-                    onClick={() => navigate("/workers")}
-                    className="hover:text-orange-400 transition-colors duration-200 relative group"
-                  >
-                    健康人
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-                  </button>
-                </li>
               </ul>
             </div>
 
@@ -91,7 +82,7 @@ export function Footer() {
                 </li>
                 <li>
                   <button
-                    onClick={() => navigate("/about")}
+                    onClick={() => navigate("/privacy")}
                     className="hover:text-orange-400 transition-colors duration-200 relative group"
                   >
                     隐私政策
@@ -144,7 +135,7 @@ export function Footer() {
           </p>
           <div className="flex gap-6 mt-4 md:mt-0">
             <button
-              onClick={() => navigate("/about")}
+              onClick={() => navigate("/privacy")}
               className="hover:text-orange-400 transition-colors duration-200 relative group"
             >
               隐私政策

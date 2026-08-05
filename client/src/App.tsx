@@ -17,6 +17,7 @@ const ArticleDetailPage = lazy(() => import("./pages/ArticleDetail").then(m => (
 const HealthWorkersPage = lazy(() => import("./pages/HealthWorkers").then(m => ({ default: m.HealthWorkersPage })));
 const SelectionPage = lazy(() => import("./pages/Selection").then(m => ({ default: m.SelectionPage })));
 const AboutPage = lazy(() => import("./pages/About").then(m => ({ default: m.AboutPage })));
+const PrivacyPage = lazy(() => import("./pages/Privacy").then(m => ({ default: m.PrivacyPage })));
 
 // Admin Imports - 懒加载后台页面
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -93,6 +94,11 @@ function Router() {
       <Route path="/about" component={() => (
         <Suspense fallback={<PageLoader />}>
           <AboutPage />
+        </Suspense>
+      )} />
+      <Route path="/privacy" component={() => (
+        <Suspense fallback={<PageLoader />}>
+          <PrivacyPage />
         </Suspense>
       )} />
 
