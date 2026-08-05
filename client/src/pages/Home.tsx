@@ -353,10 +353,10 @@ export default function Home() {
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">
-              今日浙工大人
+              浙工大健康人
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-              每天都有新的健康故事，来自我们的浙工大人社区
+              汇聚专业的健康专家团队，为浙工大人提供全方位的健康指导
             </p>
           </div>
 
@@ -396,7 +396,7 @@ export default function Home() {
               variant="outline"
               className="border-2 border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white hover:shadow-lg hover:shadow-orange-400/25 font-semibold px-8 transition-all duration-300"
             >
-              查看更多浙工大人
+              查看更多健康人
               <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1" />
             </Button>
           </div>
