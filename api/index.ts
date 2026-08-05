@@ -137,7 +137,15 @@ app.get("/api/experts", async (req, res) => { res.json(await prisma.expert.findM
 app.get("/api/experts/:id", async (req, res) => { try { const e = await prisma.expert.findUnique({ where: { id: Number(req.params.id) }, include: { category: true } }); if (!e) return res.status(404).json({ error: "Expert not found" }); res.json(e); } catch { res.status(500).json({ error: "Failed to fetch" }); } });
 app.post("/api/experts", auth, async (req, res) => { try { const { name, title, avatar, unit, achievements, introduction, categoryId } = req.body; res.json(await prisma.expert.create({ data: { name, title, avatar, unit, achievements, introduction, categoryId } })); } catch { res.status(500).json({ error: "Failed to create" }); } });
 app.put("/api/experts/:id", auth, async (req, res) => { try { const d = req.body; res.json(await prisma.expert.update({ where: { id: Number(req.params.id) }, data: { ...(d.name !== undefined && { name: d.name }), ...(d.title !== undefined && { title: d.title }), ...(d.avatar !== undefined && { avatar: d.avatar }), ...(d.unit !== undefined && { unit: d.unit }), ...(d.achievements !== undefined && { achievements: d.achievements }), ...(d.introduction !== undefined && { introduction: d.introduction }), ...(d.categoryId !== undefined && { categoryId: d.categoryId }) } })); } catch { res.status(500).json({ error: "Failed to update" }); } });
-app.delete("/api/experts/:id", auth, async (req, res) => { try { await prisma.expert.delete({ where: { id: Number(req.params.id) } }); res.json({ success: true }); } catch { res.status(500).json({ error: "Failed to delete" }); } });
+app.delete("/api/experts/:id", auth, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const existing = await prisma.expert.findUnique({ where: { id } });
+    if (!existing) return res.json({ success: true, note: "not_found" });
+    await prisma.expert.delete({ where: { id } });
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: "Failed to delete" }); }
+});
 app.get("/api/products", async (req, res) => { res.json(await prisma.product.findMany({ include: { category: true }, orderBy: { createdAt: "desc" } })); });
 app.get("/api/products/:id", async (req, res) => { try { const p = await prisma.product.findUnique({ where: { id: Number(req.params.id) }, include: { category: true } }); if (!p) return res.status(404).json({ error: "Product not found" }); res.json(p); } catch { res.status(500).json({ error: "Failed to fetch" }); } });
 app.post("/api/products", auth, async (req, res) => { try { const { name, rating, image, introduction, url, price, categoryId } = req.body; res.json(await prisma.product.create({ data: { name, rating, image, introduction, url, price, categoryId } })); } catch { res.status(500).json({ error: "Failed to create" }); } });
