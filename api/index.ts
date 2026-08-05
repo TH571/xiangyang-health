@@ -110,9 +110,9 @@ app.post("/api/upload-url", auth, async (req, res) => {
     if (!filename) return res.status(400).json({ error: "Filename required" });
     const ext = path.extname(filename);
     const key = `${type || "default"}/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    const contentType = getContentType(ext);
-    const signedUrl = getOSS().signatureUrl(key, { expires: 3600, method: "PUT", "content-type": contentType });
-    res.json({ uploadUrl: signedUrl, publicUrl: `${OSS_DOMAIN}/${key}`, contentType });
+    // 不签名 Content-Type，浏览器自动发送的 Content-Type 即可通过
+    const signedUrl = getOSS().signatureUrl(key, { expires: 3600, method: "PUT" });
+    res.json({ uploadUrl: signedUrl, publicUrl: `${OSS_DOMAIN}/${key}` });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
   }
