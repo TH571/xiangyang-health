@@ -250,7 +250,7 @@ export default function Home() {
                   </span>
                 </h1>
                 <p className="text-lg md:text-xl text-slate-700 leading-relaxed">
-                  浙工大大健康校友联盟，守护浙工大人在健康之路上温暖前行
+                  浙工大大健康校友联盟，守护浙工大人在健康之路上温暖前行。域名 www.xyjk.ren 为"向阳健康人"的拼音缩写
                 </p>
               </div>
 
