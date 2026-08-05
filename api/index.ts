@@ -194,4 +194,19 @@ app.get("/api/media", auth, async (req, res) => {
   } catch (e: any) { res.status(500).json({ error: "Failed to list media", detail: e.message }); }
 });
 
+// 删除 OSS 文件（支持单个或批量）
+app.post("/api/media/delete", auth, async (req, res) => {
+  try {
+    const keys = req.body.keys;
+    if (!Array.isArray(keys) || keys.length === 0) {
+      return res.status(400).json({ error: "keys 必须是非空数组" });
+    }
+    if (keys.length > 100) {
+      return res.status(400).json({ error: "一次最多删除 100 个文件" });
+    }
+    await getOSS().deleteMulti(keys);
+    res.json({ success: true, deleted: keys.length });
+  } catch (e: any) { res.status(500).json({ error: "Failed to delete media", detail: e.message }); }
+});
+
 export default app;

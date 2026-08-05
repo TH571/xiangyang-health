@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { Image, File, Film, RefreshCw, ExternalLink, Copy, ChevronLeft, ChevronRight, FolderOpen } from "lucide-react";
+import { Image, File, Film, RefreshCw, ExternalLink, Copy, ChevronLeft, ChevronRight, FolderOpen, Trash2 } from "lucide-react";
 
 interface MediaObject {
   key: string;
@@ -26,6 +26,8 @@ export function MediaList() {
   const [nextMarker, setNextMarker] = useState<string | null>(null);
   const [isTruncated, setIsTruncated] = useState(false);
   const [filterType, setFilterType] = useState("all");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
 
   const fetchMedia = useCallback(async (p: string, m: string | null) => {
     setLoading(true);
@@ -35,6 +37,7 @@ export function MediaList() {
       setNextMarker(res.data.nextMarker);
       setIsTruncated(res.data.isTruncated);
       setCurrentPrefix(p);
+      setSelected(new Set());
     } catch (e: any) {
       toast.error("加载媒体文件失败: " + (e.message || "未知错误"));
     } finally {
@@ -66,9 +69,42 @@ export function MediaList() {
     navigator.clipboard.writeText(url).then(() => toast.success("链接已复制")).catch(() => toast.error("复制失败"));
   };
 
+  const toggleSelect = (key: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelected(prev => {
+      if (prev.size === filtered.length) return new Set();
+      return new Set(filtered.map(o => o.key));
+    });
+  };
+
+  const handleDelete = async (keys: string[]) => {
+    if (keys.length === 0) return;
+    if (!confirm(`确定删除选中的 ${keys.length} 个文件？此操作不可恢复！`)) return;
+    setDeleting(true);
+    try {
+      await api.post("/media/delete", { keys });
+      toast.success(`已删除 ${keys.length} 个文件`);
+      setSelected(new Set());
+      fetchMedia(currentPrefix, marker);
+    } catch (e: any) {
+      toast.error("删除失败: " + (e.response?.data?.error || e.message || "未知错误"));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const filtered = filterType === "all" ? objects : objects.filter(o => o.type === filterType);
   const imageTypes = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"];
   const videoTypes = ["mp4", "webm", "mov", "avi"];
+  const allSelected = filtered.length > 0 && selected.size === filtered.length;
 
   const getIcon = (type: string) => {
     if (imageTypes.includes(type)) return <Image className="w-5 h-5 text-blue-500" />;
@@ -98,11 +134,23 @@ export function MediaList() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold">媒体管理</h2>
-          <p className="text-sm text-slate-500 mt-1">浏览 OSS 上已上传的图片、视频和文件</p>
+          <p className="text-sm text-slate-500 mt-1">浏览 OSS 上已上传的图片、视频和文件，支持勾选删除</p>
         </div>
-        <Button variant="outline" onClick={() => fetchMedia(currentPrefix, null)}>
-          <RefreshCw className="w-4 h-4 mr-2" /> 刷新
-        </Button>
+        <div className="flex items-center gap-2">
+          {selected.size > 0 && (
+            <Button
+              variant="destructive"
+              disabled={deleting}
+              onClick={() => handleDelete(Array.from(selected))}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {deleting ? "删除中..." : `删除选中 (${selected.size})`}
+            </Button>
+          )}
+          <Button variant="outline" onClick={() => fetchMedia(currentPrefix, null)}>
+            <RefreshCw className="w-4 h-4 mr-2" /> 刷新
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -148,56 +196,85 @@ export function MediaList() {
           <div className="text-center py-12 text-slate-500">该路径下没有媒体文件</div>
         ) : (
           <>
+            {/* Selection Bar */}
+            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-100 bg-slate-50">
+              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleSelectAll}
+                  className="w-4 h-4 accent-orange-600"
+                />
+                全选 ({filtered.length})
+              </label>
+              {selected.size > 0 && (
+                <span className="text-sm text-orange-600 font-medium">已选择 {selected.size} 个文件</span>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-6">
-              {filtered.map((obj) => (
-                <div
-                  key={obj.key}
-                  className="group relative bg-slate-50 rounded-lg border overflow-hidden hover:shadow-md transition-shadow"
-                >
-                  {/* Preview */}
-                  <div className="aspect-square flex items-center justify-center bg-slate-100 overflow-hidden">
-                    {imageTypes.includes(obj.type) ? (
-                      <img
-                        src={obj.url}
-                        alt={obj.key}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                          (e.target as HTMLImageElement).parentElement!.classList.add("flex", "items-center", "justify-center");
-                        }}
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 text-slate-400">
-                        {getIcon(obj.type)}
-                        <span className="text-xs font-mono">.{obj.type}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Overlay Actions */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                    {imageTypes.includes(obj.type) && (
-                      <a href={obj.url} target="_blank" rel="noopener noreferrer"
-                        className="p-2 bg-white rounded-full hover:bg-orange-100 transition-colors">
-                        <ExternalLink className="w-4 h-4 text-slate-700" />
-                      </a>
-                    )}
-                    <button onClick={() => handleCopyUrl(obj.url)}
-                      className="p-2 bg-white rounded-full hover:bg-orange-100 transition-colors">
-                      <Copy className="w-4 h-4 text-slate-700" />
-                    </button>
-                  </div>
-
-                  {/* Info */}
-                  <div className="p-2">
-                    <div className="text-xs text-slate-700 truncate" title={obj.key.split("/").pop()}>
-                      {obj.key.split("/").pop()}
+              {filtered.map((obj) => {
+                const isSelected = selected.has(obj.key);
+                return (
+                  <div
+                    key={obj.key}
+                    onClick={() => toggleSelect(obj.key)}
+                    className={`group relative bg-slate-50 rounded-lg border overflow-hidden hover:shadow-md transition-all cursor-pointer ${isSelected ? "border-orange-500 ring-2 ring-orange-200" : "border-slate-200"}`}
+                  >
+                    {/* Checkbox */}
+                    <div className={`absolute top-2 left-2 z-10 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isSelected ? "bg-orange-600 border-orange-600" : "bg-white border-slate-300 group-hover:border-orange-400"}`}>
+                      {isSelected && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                     </div>
-                    <div className="text-xs text-slate-400">{formatSize(obj.size)}</div>
+
+                    {/* Preview */}
+                    <div className="aspect-square flex items-center justify-center bg-slate-100 overflow-hidden">
+                      {imageTypes.includes(obj.type) ? (
+                        <img
+                          src={obj.url}
+                          alt={obj.key}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                            (e.target as HTMLImageElement).parentElement!.classList.add("flex", "items-center", "justify-center");
+                          }}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 text-slate-400">
+                          {getIcon(obj.type)}
+                          <span className="text-xs font-mono">.{obj.type}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Overlay Actions */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                      {imageTypes.includes(obj.type) && (
+                        <a href={obj.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                          className="p-2 bg-white rounded-full hover:bg-orange-100 transition-colors">
+                          <ExternalLink className="w-4 h-4 text-slate-700" />
+                        </a>
+                      )}
+                      <button onClick={(e) => { e.stopPropagation(); handleCopyUrl(obj.url); }}
+                        className="p-2 bg-white rounded-full hover:bg-orange-100 transition-colors">
+                        <Copy className="w-4 h-4 text-slate-700" />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete([obj.key]); }}
+                        className="p-2 bg-white rounded-full hover:bg-red-100 transition-colors">
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    </div>
+
+                    {/* Info */}
+                    <div className="p-2">
+                      <div className="text-xs text-slate-700 truncate" title={obj.key.split("/").pop()}>
+                        {obj.key.split("/").pop()}
+                      </div>
+                      <div className="text-xs text-slate-400">{formatSize(obj.size)}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Pagination */}
