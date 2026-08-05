@@ -56,6 +56,11 @@ function ProtectedRoute({ component: Component, params }: { component: React.Com
 }
 
 function Router() {
+  const [location] = useLocation();
+
+  // 路由切换时滚动到页面顶部
+  useEffect(() => { window.scrollTo(0, 0); }, [location]);
+
   return (
     <Switch>
       {/* Public Routes - 首页不使用懒加载，确保首屏快速显示 */}
