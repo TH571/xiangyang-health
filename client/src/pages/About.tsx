@@ -121,38 +121,6 @@ export function AboutPage() {
         </div>
       </section>
 
-      {/* Story Section */}
-      <section className="py-16 bg-orange-50">
-        <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8 text-center">
-            我们的故事
-          </h2>
-
-          <div className="max-w-3xl mx-auto space-y-6">
-            <div className="bg-white rounded-lg p-8 border-l-4 border-orange-600">
-              <h3 className="text-xl font-bold text-slate-900 mb-3">从一个想法开始</h3>
-              <p className="text-slate-600 leading-relaxed">
-              浙工大生物工程学院、食品学院、环境学院等优秀学院，培育了一批又一批从事大健康行业的校友，随着人们对健康的愈来愈关注，因此有了组建大健康校友联盟的想法——用科学的方法和温暖的陪伴，帮助浙工大人越来越健康。
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-8 border-l-4 border-blue-600">
-              <h3 className="text-xl font-bold text-slate-900 mb-3">汇聚专业力量</h3>
-              <p className="text-slate-600 leading-relaxed">
-                我们邀请了医学专家、营养师、心理咨询师和运动教练加入团队，确保每一条建议都是科学、专业的。同时，我们建立了一个由浙工大校友组成的志愿者团队，他们用自己的亲身经历为其他校友提供支持和鼓励。
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-8 border-l-4 border-green-600">
-              <h3 className="text-xl font-bold text-slate-900 mb-3">持续成长</h3>
-              <p className="text-slate-600 leading-relaxed">
-                从向阳健康网到健康购物平台，我们看到了许多人的健康改善和生活质量提升。这些都激励我们继续前进，为更多人带去健康和希望。
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Team Section */}
       <section className="py-16 bg-white">
         <div className="container">
@@ -262,10 +230,6 @@ export function AboutPage() {
               {
                 q: '向阳健康是否提供一对一咨询？',
                 a: '目前我们主要提供在线文章和资源。未来我们计划推出专业咨询服务，敬请期待。'
-              },
-              {
-                q: '如何订阅向阳健康的更新？',
-                a: '您可以在首页点击"开始探索"按钮加入我们的社区，或关注我们的微信公众号获取最新资讯。'
               }
             ].map((item, index) => (
               <div
