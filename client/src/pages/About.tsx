@@ -8,7 +8,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { SimpleDivider } from '@/components/OrganicDivider';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Mail, Phone, MapPin, Users, Target, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Mail, MapPin, Users, Target, Lightbulb } from 'lucide-react';
 
 interface TeamMember {
   id: string;
@@ -148,7 +148,7 @@ export function AboutPage() {
             联系我们
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-xl mx-auto">
             {/* Email */}
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/20 mb-4">
@@ -163,20 +163,6 @@ export function AboutPage() {
               </a>
             </div>
 
-            {/* Phone */}
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/20 mb-4">
-                <Phone className="w-6 h-6" />
-              </div>
-              <h3 className="font-semibold mb-2">电话</h3>
-              <a
-                href="tel:+8615869195869"
-                className="text-white/80 hover:text-white transition-colors"
-              >
-                158 6919 5869
-              </a>
-            </div>
-
             {/* Address */}
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/20 mb-4">
@@ -184,8 +170,7 @@ export function AboutPage() {
               </div>
               <h3 className="font-semibold mb-2">地址</h3>
               <p className="text-white/80">
-                中国 浙江<br />
-                杭州 朝晖
+                中国浙江杭州
               </p>
             </div>
           </div>
