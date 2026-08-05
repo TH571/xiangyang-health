@@ -6,7 +6,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { api, getImageThumb } from "@/lib/api";
 import { Image, File, Film, RefreshCw, ExternalLink, Copy, ChevronLeft, ChevronRight, FolderOpen, Trash2 } from "lucide-react";
 
 interface MediaObject {
@@ -242,7 +242,7 @@ export function MediaList() {
                     <div className="aspect-square flex items-center justify-center bg-slate-100 overflow-hidden">
                       {imageTypes.includes(obj.type) ? (
                         <img
-                          src={obj.url}
+                          src={getImageThumb(obj.url, 400)}
                           alt={obj.key}
                           className="w-full h-full object-cover"
                           loading="lazy"

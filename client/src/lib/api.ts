@@ -195,6 +195,17 @@ export function getImageUrl(path: string | null | undefined): string {
 }
 
 /**
+ * 生成缩略图 URL（阿里云 OSS 图片处理，按需缩放+降质）。
+ * 仅对 OSS 域名下的图片生效；其他来源返回原图，不影响功能。
+ * 用于卡片/列表等小尺寸展示，大幅减少加载体积。
+ */
+export function getImageThumb(path: string | null | undefined, width: number): string {
+  const url = getImageUrl(path);
+  if (!url || !url.includes('aliyuncs.com')) return url;
+  return `${url}?x-oss-process=image/resize,w_${width},quality_80`;
+}
+
+/**
  * Parse API error and return user-friendly message
  */
 export function getApiErrorMessage(error: any): string {

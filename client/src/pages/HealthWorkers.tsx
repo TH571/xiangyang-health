@@ -8,7 +8,7 @@ import { useLocation } from 'wouter';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ArrowLeft } from 'lucide-react';
-import { api, getImageUrl } from '@/lib/api';
+import { api, getImageUrl, getImageThumb } from '@/lib/api';
 import { useCachedData } from "@/hooks/useCachedData";
 import { AvatarPlaceholder } from "@/components/Placeholder";
 
@@ -151,8 +151,10 @@ export function HealthWorkersPage() {
                   <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-100 border border-slate-100 group-hover:scale-105 transition-transform duration-300">
                     {getImageUrl(expert.avatar) ? (
                       <img
-                        src={getImageUrl(expert.avatar)}
+                        src={getImageThumb(expert.avatar, 200)}
                         alt={expert.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -222,7 +224,7 @@ export function HealthWorkersPage() {
                 <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg bg-slate-50 overflow-hidden">
                   {getImageUrl(selectedExpert.avatar) ? (
                     <img
-                      src={getImageUrl(selectedExpert.avatar)}
+                      src={getImageThumb(selectedExpert.avatar, 400)}
                       alt={selectedExpert.name}
                       className="w-full h-full object-cover"
                     />

@@ -13,7 +13,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { OrganicDivider } from "@/components/OrganicDivider";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, AlertCircle, Calendar } from "lucide-react";
-import { api, getImageUrl, getApiErrorMessage } from "@/lib/api";
+import { api, getImageUrl, getApiErrorMessage, getImageThumb } from "@/lib/api";
 import { OSS_BASE_URL } from "@/lib/config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCachedData } from "@/hooks/useCachedData";
@@ -90,7 +90,7 @@ export default function Home() {
       id: String(e.id),
       name: e.name,
       title: e.title,
-      avatar: getImageUrl(e.avatar) || '',
+      avatar: getImageThumb(e.avatar, 200) || '',
       description: e.achievements || e.introduction?.substring(0, 50) || "专业健康专家",
       quote: "守护每一位浙工大人的健康"
     }));
@@ -284,8 +284,10 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-300 to-amber-300 rounded-full opacity-20 blur-3xl animate-pulse" />
                 <div className="absolute inset-4 bg-gradient-to-br from-orange-200/30 to-amber-200/30 rounded-full blur-2xl" />
                 <img
-                  src={`${OSS_BASE_URL}/images/health-illustration.jpg`}
+                  src={getImageThumb(`${OSS_BASE_URL}/images/health-illustration.jpg`, 500)}
                   alt="健康插画"
+                  loading="lazy"
+                  decoding="async"
                   className="relative w-full h-full object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                 />
                 {/* Date and Time Display - Aligned with "开始探索" button */}

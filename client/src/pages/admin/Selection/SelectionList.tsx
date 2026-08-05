@@ -14,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload, Star } from "lucide-react";
 import { toast } from "sonner";
-import { api, uploadFileDirect, getImageUrl } from "@/lib/api";
+import { api, uploadFileDirect, getImageUrl, getImageThumb } from "@/lib/api";
 import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
 import { SmallAvatarPlaceholder } from "@/components/Placeholder";
 
@@ -88,7 +88,7 @@ export function SelectionList() {
                             <TableRow key={item.id}>
                                 <TableCell>
                                     {getImageUrl(item.image) ? (
-                                        <img src={getImageUrl(item.image)} alt={item.name} className="w-12 h-12 rounded object-cover border" />
+                                        <img src={getImageThumb(item.image, 200)} alt={item.name} loading="lazy" className="w-12 h-12 rounded object-cover border" />
                                     ) : (
                                         <SmallAvatarPlaceholder />
                                     )}

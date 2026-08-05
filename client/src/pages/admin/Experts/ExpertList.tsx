@@ -15,7 +15,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { api, uploadFileDirect, getImageUrl } from "@/lib/api";
+import { api, uploadFileDirect, getImageUrl, getImageThumb } from "@/lib/api";
 import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
 import { SmallAvatarPlaceholder } from "@/components/Placeholder";
 
@@ -89,7 +89,7 @@ export function ExpertList() {
                             <TableRow key={item.id}>
                                 <TableCell className="text-center">
                                     {getImageUrl(item.avatar) ? (
-                                        <img src={getImageUrl(item.avatar)} alt={item.name} className="w-10 h-10 rounded-full object-cover mx-auto" />
+                                        <img src={getImageThumb(item.avatar, 200)} alt={item.name} loading="lazy" className="w-10 h-10 rounded-full object-cover mx-auto" />
                                     ) : (
                                         <SmallAvatarPlaceholder />
                                     )}

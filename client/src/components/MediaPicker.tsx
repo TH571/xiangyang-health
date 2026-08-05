@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { api, getImageThumb } from "@/lib/api";
 import { X, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight, FolderOpen } from "lucide-react";
 
 interface MediaObject {
@@ -166,7 +166,7 @@ export function MediaPicker({ open, onClose, onSelect }: MediaPickerProps) {
                   }`}
                 >
                   <img
-                    src={obj.url}
+                    src={getImageThumb(obj.url, 400)}
                     alt={obj.key}
                     className="w-full h-full object-cover"
                     loading="lazy"

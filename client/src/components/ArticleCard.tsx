@@ -5,6 +5,7 @@
  */
 
 import { Article } from "@/lib/types";
+import { getImageThumb } from "@/lib/api";
 import { ArrowRight } from "lucide-react";
 import { ImagePlaceholder } from "./Placeholder";
 
@@ -23,8 +24,10 @@ export function ArticleCard({ article, onClick }: ArticleCardProps) {
       <div className="relative overflow-hidden h-56 bg-gray-200">
         {article.image ? (
           <img
-            src={article.image}
+            src={getImageThumb(article.image, 600)}
             alt={article.title}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
         ) : (

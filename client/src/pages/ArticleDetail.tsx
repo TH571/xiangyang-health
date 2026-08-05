@@ -10,7 +10,7 @@ import { Footer } from '@/components/Footer';
 import { SimpleDivider } from '@/components/OrganicDivider';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Heart } from 'lucide-react';
-import { api, getImageUrl } from '@/lib/api';
+import { api, getImageUrl, getImageThumb } from '@/lib/api';
 import { ImagePlaceholder } from '@/components/Placeholder';
 import { toast } from "sonner";
 
@@ -241,8 +241,10 @@ export function ArticleDetailPage({ id }: ArticleDetailProps) {
                   <div className="relative overflow-hidden h-40 bg-gray-200">
                     {getImageUrl(relatedArticle.cover) ? (
                       <img
-                        src={getImageUrl(relatedArticle.cover)}
+                        src={getImageThumb(relatedArticle.cover, 400)}
                         alt={relatedArticle.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (

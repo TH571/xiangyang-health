@@ -10,7 +10,7 @@ import { Footer } from '@/components/Footer';
 import { SimpleDivider } from '@/components/OrganicDivider';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Star, ExternalLink } from 'lucide-react';
-import { api, getImageUrl } from '@/lib/api';
+import { api, getImageUrl, getImageThumb } from '@/lib/api';
 import { toast } from "sonner";
 import { ImagePlaceholder } from "@/components/Placeholder";
 import { useCachedData } from "@/hooks/useCachedData";
@@ -157,8 +157,10 @@ export function SelectionPage() {
                 <div className="relative overflow-hidden h-48 bg-gray-200">
                   {getImageUrl(product.image) ? (
                     <img
-                      src={getImageUrl(product.image)}
+                      src={getImageThumb(product.image, 400)}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
