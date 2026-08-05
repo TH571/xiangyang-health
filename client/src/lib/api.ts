@@ -113,12 +113,45 @@ uploadApi.interceptors.response.use(
  * 浏览器直传 OSS：获取签名 URL 后直接 PUT 上传
  * 不走 Vercel 函数中转，避免跨洲超时
  */
+
+/** 图片压缩：最大宽度 1024px，转 JPEG 质量 0.85 */
+async function compressImage(file: File, maxWidth: number = 1024): Promise<{ blob: Blob; name: string }> {
+  // 跳过 GIF（保持动画）和非图片
+  if (!file.type.startsWith('image/') || file.type === 'image/gif' || file.type === 'image/svg+xml') {
+    return { blob: file, name: file.name };
+  }
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, w, h);
+      const newName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+      canvas.toBlob(blob => {
+        if (blob) resolve({ blob, name: newName });
+        else reject(new Error('图片压缩失败'));
+      }, 'image/jpeg', 0.85);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('图片加载失败')); };
+    img.src = url;
+  });
+}
+
 export async function uploadFileDirect(file: File, type: string = "default"): Promise<string> {
+  // 压缩图片
+  const { blob, name } = await compressImage(file, 1024);
+  const uploadFile = new File([blob], name, { type: 'image/jpeg' });
+
   const token = localStorage.getItem('admin_token');
   const res = await fetch(`${BASE_URL}/upload-url`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({ filename: file.name, type, mimeType: file.type || undefined }),
+    body: JSON.stringify({ filename: uploadFile.name, type, mimeType: uploadFile.type || undefined }),
   });
   const data = await res.json();
   if (!data.uploadUrl) throw new Error((data.error || '获取上传链接失败') + ' (1)');
@@ -126,7 +159,7 @@ export async function uploadFileDirect(file: File, type: string = "default"): Pr
   // 尝试方案A：fetch 直传 OSS（CORS 可能被旁路由拦截）
   try {
     const uploadRes = await fetch(data.uploadUrl, {
-      method: 'PUT', body: file,
+      method: 'PUT', body: uploadFile,
       headers: { 'Content-Type': data.contentType },
     });
     if (uploadRes.ok) return data.publicUrl;
@@ -134,9 +167,9 @@ export async function uploadFileDirect(file: File, type: string = "default"): Pr
     console.warn('直传 OSS 失败，切换到 Vercel 中转:', e);
   }
 
-  // 方案B：通过 Vercel 函数中转（网络已恢复，设 60 秒超时）
+  // 方案B：通过 Vercel 函数中转
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('file', uploadFile);
   const token2 = localStorage.getItem('admin_token');
   const vercelRes = await fetch(`${BASE_URL}/upload?type=${type}`, {
     method: 'POST',
