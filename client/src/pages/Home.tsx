@@ -199,15 +199,10 @@ export default function Home() {
   // "前沿研究" -> frontiers? "专业讲座" -> lectures? "科普知识" -> science?
   // I'll try to match Chinese names or fallback.
 
-  // Filter logic with fallbacks
-  const frontierArticlesList = articles.filter(a => a.category === "frontiers").slice(0, 3);
-  const frontierArticles = frontierArticlesList.length > 0 ? frontierArticlesList : articles.slice(0, 3);
-
-  const lectureArticlesList = articles.filter(a => a.category === "lectures").slice(0, 3);
-  const lectureArticles = lectureArticlesList.length > 0 ? lectureArticlesList : articles.slice(3, 6);
-
-  const scienceArticlesList = articles.filter(a => a.category === "science").slice(0, 3);
-  const scienceArticles = scienceArticlesList.length > 0 ? scienceArticlesList : articles.slice(6, 9);
+  // Filter logic - 按分类筛选，空分类显示空
+  const frontierArticles = articles.filter(a => a.category === "frontiers").slice(0, 3);
+  const lectureArticles = articles.filter(a => a.category === "lectures").slice(0, 3);
+  const scienceArticles = articles.filter(a => a.category === "science").slice(0, 3);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
