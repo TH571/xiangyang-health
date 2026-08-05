@@ -117,13 +117,14 @@ interface RichTextEditorProps {
     onChange: (value: string) => void;
     onImageUpload?: (file: File) => Promise<string>;
     onVideoUpload?: (file: File) => Promise<string>;
+    onPickFromLibrary?: (insertImage: (url: string) => void) => void;
     placeholder?: string;
     modules?: any;
     className?: string;
     theme?: string;
 }
 
-export default function RichTextEditor({ value, onChange, onImageUpload, onVideoUpload, placeholder, modules, className, theme = "snow" }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, onImageUpload, onVideoUpload, onPickFromLibrary, placeholder, modules, className, theme = "snow" }: RichTextEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
     const quillRef = useRef<Quill | null>(null);
     const onChangeRef = useRef(onChange);
@@ -245,6 +246,30 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                 }
             });
 
+            // 媒体库选择按钮 - 追加到工具栏末尾
+            if (onPickFromLibrary) {
+                const toolbarEl = quill.getModule('toolbar').container as HTMLElement;
+                const libBtn = document.createElement('button');
+                libBtn.type = 'button';
+                libBtn.className = 'ql-library-picker';
+                libBtn.title = '从媒体库选择图片';
+                libBtn.innerHTML = '<span>📁</span><span style="margin-left:4px">媒体库</span>';
+                libBtn.onclick = () => {
+                    const savedRange = quill.getSelection(true);
+                    onPickFromLibrary((url: string) => {
+                        if (!url) return;
+                        quill.focus();
+                        const insertIndex = savedRange?.index ?? quill.getLength();
+                        quill.insertEmbed(insertIndex, 'image', url);
+                        quill.setSelection(insertIndex + 1, 0);
+                        isUpdatingRef.current = true;
+                        onChangeRef.current(quill.root.innerHTML);
+                        setTimeout(() => { isUpdatingRef.current = false; }, 100);
+                    });
+                };
+                toolbarEl.appendChild(libBtn);
+            }
+
             // Handle Paste and Drop
             const handleImageInsert = async (file: File, insertRange?: { index: number; length: number } | null) => {
                 if (!onImageUpload) return;
@@ -348,6 +373,24 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                     max-width: 100%;
                     height: auto;
                     border-radius: 4px;
+                }
+                /* 媒体库选择按钮 */
+                .ql-toolbar .ql-library-picker {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 3px 8px;
+                    margin-left: 4px;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    background: #fff7ed;
+                    color: #c2410c;
+                    font-size: 13px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .ql-toolbar .ql-library-picker:hover {
+                    background: #ffedd5;
+                    border-color: #f97316;
                 }
             `}</style>
         </div>

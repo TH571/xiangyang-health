@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import RichTextEditor from '@/components/RichTextEditor';
+import { MediaPicker } from '@/components/MediaPicker';
 
 // ... (other imports)
 
@@ -195,6 +196,8 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
+    const [showLibraryPicker, setShowLibraryPicker] = useState(false);
+    const [libraryInsert, setLibraryInsert] = useState<((url: string) => void) | null>(null);
     const [location, setLocation] = useLocation();
 
     // Extract ID from URL if params is empty (wouter issue sometimes)
@@ -347,6 +350,10 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
                                 onChange={val => setFormData(prev => ({ ...prev, content: val }))}
                                 onImageUpload={handleImageUpload}
                                 onVideoUpload={handleVideoUpload}
+                                onPickFromLibrary={(insert) => {
+                                    setLibraryInsert(() => insert);
+                                    setShowLibraryPicker(true);
+                                }}
                                 modules={modules}
                                 className="mb-12"
                             />
@@ -370,6 +377,17 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
                     onClose={() => setShowPreview(false)}
                     title={formData.title}
                     content={formData.content}
+                />
+
+                {/* 媒体库选择弹窗 */}
+                <MediaPicker
+                    open={showLibraryPicker}
+                    onClose={() => setShowLibraryPicker(false)}
+                    onSelect={(url) => {
+                        if (libraryInsert) libraryInsert(url);
+                        setShowLibraryPicker(false);
+                        toast.success("图片已插入");
+                    }}
                 />
             </div>
         </AdminLayout>

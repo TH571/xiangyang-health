@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import RichTextEditor from '@/components/RichTextEditor';
+import { MediaPicker } from '@/components/MediaPicker';
 import { AdminLayout } from "../Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -120,6 +121,8 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
     const [formData, setFormData] = useState<Partial<Expert>>({ introduction: "" });
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
+    const [showLibraryPicker, setShowLibraryPicker] = useState(false);
+    const [libraryInsert, setLibraryInsert] = useState<((url: string) => void) | null>(null);
     const { token } = useAuth()!;
     const [location, setLocation] = useLocation();
 
@@ -245,6 +248,10 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
                                 theme="snow"
                                 value={formData.introduction || ""}
                                 onChange={val => setFormData(prev => ({ ...prev, introduction: val }))}
+                                onPickFromLibrary={(insert) => {
+                                    setLibraryInsert(() => insert);
+                                    setShowLibraryPicker(true);
+                                }}
                                 modules={modules}
                                 className="mb-12"
                             />
@@ -258,6 +265,17 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
                         </Button>
                     </div>
                 </form>
+
+                {/* 媒体库选择弹窗 */}
+                <MediaPicker
+                    open={showLibraryPicker}
+                    onClose={() => setShowLibraryPicker(false)}
+                    onSelect={(url) => {
+                        if (libraryInsert) libraryInsert(url);
+                        setShowLibraryPicker(false);
+                        toast.success("图片已插入");
+                    }}
+                />
             </div>
         </AdminLayout>
     );
