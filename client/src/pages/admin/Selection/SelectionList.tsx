@@ -218,7 +218,7 @@ export function SelectionEdit({ params }: { params?: { id?: string } }) {
                         <div className="flex items-center gap-4">
                             {formData.image && <img src={getImageUrl(formData.image)} alt="Product" className="h-20 w-20 object-cover rounded border" />}
                             <div className="relative">
-                                <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleUploadImage} accept="image/*" />
+                                <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleUploadImage} />
                                 <Button type="button" variant="outline"><Upload className="w-4 h-4 mr-2" /> 上传图片</Button>
                             </div>
                         </div>

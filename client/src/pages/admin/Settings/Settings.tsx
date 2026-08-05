@@ -127,7 +127,7 @@ export function Settings() {
                                     </div>
                                     <label className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 cursor-pointer rounded-full transition-opacity z-10">
                                         <Upload className="w-6 h-6" />
-                                        <input type="file" className="hidden" accept="image/*" onChange={handleUploadAvatar} />
+                                        <input type="file" className="hidden" onChange={handleUploadAvatar} />
                                     </label>
                                 </div>
                                 <div className="flex-1 space-y-4">

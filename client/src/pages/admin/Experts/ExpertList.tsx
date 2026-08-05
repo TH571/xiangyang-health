@@ -232,7 +232,7 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
                         <div className="flex items-center gap-4">
                             {formData.avatar && <img src={getImageUrl(formData.avatar)} alt="Avatar" className="h-20 w-20 object-cover rounded-full border" />}
                             <div className="relative">
-                                <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleUploadAvatar} accept="image/*" />
+                                <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleUploadAvatar} />
                                 <Button type="button" variant="outline"><Upload className="w-4 h-4 mr-2" /> 上传头像</Button>
                             </div>
                         </div>

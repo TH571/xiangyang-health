@@ -261,7 +261,7 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
                         <div className="flex items-center gap-4">
                             {formData.cover && <img src={getImageUrl(formData.cover)} alt="Cover" className="h-20 w-32 object-cover rounded border" />}
                             <div className="relative">
-                                <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleUploadCover} accept="image/*" />
+                                <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleUploadCover} />
                                 <Button type="button" variant="outline"><Upload className="w-4 h-4 mr-2" /> 上传封面</Button>
                             </div>
                         </div>

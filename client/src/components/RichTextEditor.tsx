@@ -160,7 +160,6 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                 toolbar.addHandler('image', () => {
                     const input = document.createElement('input');
                     input.setAttribute('type', 'file');
-                    input.setAttribute('accept', 'image/*');
                     input.click();
                     input.onchange = async () => {
                         const file = input.files ? input.files[0] : null;
