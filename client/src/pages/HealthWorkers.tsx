@@ -7,8 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'wouter';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Star } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
 import { toast } from "sonner";
 import { useCachedData } from "@/hooks/useCachedData";
@@ -202,11 +201,6 @@ export function HealthWorkersPage() {
 
                 {/* Action CTA or Stats */}
                 <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-4 sm:border-l sm:border-slate-100 sm:pl-6 min-w-[120px]">
-                  <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-full">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span className="text-sm font-semibold text-slate-700">{expert.rating}</span>
-                  </div>
-
                   <div className="text-sm text-slate-400 flex items-center gap-1">
                     查看详情
                     <ArrowLeft className="w-3 h-3 rotate-180" />
@@ -256,22 +250,6 @@ export function HealthWorkersPage() {
               </div>
 
               <div className="p-8 space-y-8">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-slate-900">{selectedExpert.rating}</div>
-                    <div className="text-xs text-slate-500 mt-1">综合评分</div>
-                  </div>
-                  <div className="text-center border-l border-slate-200">
-                    <div className="text-2xl font-bold text-slate-900">{selectedExpert.consultations}</div>
-                    <div className="text-xs text-slate-500 mt-1">咨询人次</div>
-                  </div>
-                  <div className="col-span-2 md:col-span-2 flex items-center justify-end px-4">
-                    <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white">
-                      预约咨询
-                    </Button>
-                  </div>
-                </div>
-
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">关于专家</h3>
                   <div className="prose prose-sm max-w-none text-slate-600 leading-7" dangerouslySetInnerHTML={{ __html: selectedExpert.introduction }} />
