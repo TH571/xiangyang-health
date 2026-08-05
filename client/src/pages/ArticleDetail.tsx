@@ -234,22 +234,6 @@ export function ArticleDetailPage({ id }: ArticleDetailProps) {
         </section>
       )}
 
-      {/* CTA Section */}
-      <section className="py-12 bg-gradient-to-r from-orange-600 to-red-600 text-white">
-        <div className="container text-center">
-          <h2 className="text-3xl font-bold mb-4">想了解更多健康知识？</h2>
-          <p className="text-lg text-orange-100 mb-8 max-w-2xl mx-auto">
-            加入向阳健康社区，每天获取最新的健康资讯和专业建议
-          </p>
-          <Button
-            size="lg"
-            className="bg-white text-orange-600 hover:bg-gray-100 font-semibold"
-          >
-            立即加入
-          </Button>
-        </div>
-      </section>
-
       <Footer />
     </div>
   );
