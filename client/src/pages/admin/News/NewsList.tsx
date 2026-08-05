@@ -163,9 +163,13 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
 
     const modules = useMemo(() => ({
         toolbar: [
-            [{ header: [1, 2, false] }],
-            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-            [{ list: 'ordered' }, { list: 'bullet' }],
+            [{ header: [1, 2, 3, 4, 5, 6, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ color: [] }, { background: [] }],
+            [{ align: [] }],
+            [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+            ['blockquote', 'code-block'],
+            [{ script: 'sub' }, { script: 'super' }],
             ['link', 'image', 'video'],
             ['clean'],
         ],

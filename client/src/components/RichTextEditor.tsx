@@ -141,9 +141,13 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                 placeholder: placeholder || "Compose...",
                 modules: modules || {
                     toolbar: [
-                        [{ header: [1, 2, false] }],
+                        [{ header: [1, 2, 3, 4, 5, 6, false] }],
                         ['bold', 'italic', 'underline', 'strike'],
-                        [{ list: 'ordered' }, { list: 'bullet' }],
+                        [{ color: [] }, { background: [] }],
+                        [{ align: [] }],
+                        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+                        ['blockquote', 'code-block'],
+                        [{ script: 'sub' }, { script: 'super' }],
                         ['link', 'image', 'video'],
                         ['clean'],
                     ],
