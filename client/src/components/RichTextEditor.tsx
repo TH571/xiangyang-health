@@ -248,7 +248,7 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
 
             // 媒体库选择按钮 - 追加到工具栏末尾
             if (onPickFromLibrary) {
-                const toolbarEl = quill.getModule('toolbar').container as HTMLElement;
+                const toolbarEl = (quill.getModule('toolbar') as any).container as HTMLElement;
                 const libBtn = document.createElement('button');
                 libBtn.type = 'button';
                 libBtn.className = 'ql-library-picker';
