@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import OSS from "ali-oss";
 import path from "path";
-import { getDailyTip } from "../server/daily-tip";
+import { getDailyTip } from "./daily-tip";
 
 // ===== Prisma =====
 const prisma = new PrismaClient();

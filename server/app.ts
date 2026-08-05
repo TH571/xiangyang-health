@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import path from "path";
 import { uploadToOSS } from "./oss";
-import { getDailyTip } from "./daily-tip";
+import { getDailyTip } from "../api/daily-tip";
 
 // Initialize Prisma
 export const prisma = new PrismaClient();
