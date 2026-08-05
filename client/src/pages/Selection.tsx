@@ -20,14 +20,10 @@ interface Product {
   name: string;
   category: string;
   price: string | number;
-  originalPrice?: number;
   image: string;
   rating: number;
-  reviews: number;
   description: string;
   features: string[];
-  inStock: boolean;
-  discount?: number;
   url?: string;
 }
 
@@ -67,14 +63,10 @@ export function SelectionPage() {
       name: item.name,
       category: item.category?.name || '其他',
       price: item.price || '0',
-      originalPrice: undefined,
       image: getImageUrl(item.image) || '',
       rating: item.rating || 5.0,
-      reviews: Math.floor(Math.random() * 500) + 50,
       description: item.introduction || '',
       features: ['正品保证', '极速发货'],
-      inStock: true,
-      discount: undefined,
       url: item.url
     }));
 
@@ -100,7 +92,7 @@ export function SelectionPage() {
       toast.error('该商品暂无购买链接');
       return;
     }
-    window.open(product.url, '_blank');
+    window.open(product.url, '_blank', 'noopener');
   };
 
   return (
@@ -173,20 +165,6 @@ export function SelectionPage() {
                     <ImagePlaceholder width={300} height={192} />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-
-                  {/* Discount Badge */}
-                  {product.discount && (
-                    <div className="absolute top-3 right-3 bg-red-600 text-white px-2 py-1 rounded-md text-xs font-bold">
-                      -{product.discount}%
-                    </div>
-                  )}
-
-                  {/* Stock Status */}
-                  {!product.inStock && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">缺货</span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Product Info */}
@@ -210,18 +188,12 @@ export function SelectionPage() {
                         />
                       ))}
                     </div>
-                    <span className="text-xs text-slate-600">({product.reviews})</span>
                   </div>
 
                   {/* Price */}
                   <div className="mb-3">
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-bold text-slate-900">¥{product.price}</span>
-                      {product.originalPrice && (
-                        <span className="text-xs text-slate-500 line-through">
-                          ¥{product.originalPrice}
-                        </span>
-                      )}
                     </div>
                   </div>
 
@@ -240,11 +212,11 @@ export function SelectionPage() {
                   {/* View Details Button */}
                   <Button
                     size="sm"
-                    className={`w-full ${product.inStock && product.url
+                    className={`w-full ${product.url
                         ? 'bg-green-600 hover:bg-green-700 text-white'
                         : 'bg-gray-300 text-gray-600 cursor-not-allowed'
                       }`}
-                    disabled={!product.inStock || !product.url}
+                    disabled={!product.url}
                     onClick={() => handleViewDetails(product)}
                   >
                     <ExternalLink className="w-4 h-4 mr-1" />

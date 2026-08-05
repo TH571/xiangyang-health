@@ -19,7 +19,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload, Search, Eye, X } from "lucide-react";
 import { toast } from "sonner";
-import { api, uploadApi, uploadFileDirect, getImageUrl } from "@/lib/api";
+import { api, uploadFileDirect, getImageUrl } from "@/lib/api";
 import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
 
 // ===== Preview Modal =====
@@ -55,6 +55,8 @@ interface News {
     date: string;
     categoryId: number;
     category: { name: string };
+    isPublished: boolean;
+    isPinned: boolean;
 }
 
 interface Category {
@@ -71,9 +73,9 @@ export function NewsList() {
     const [filterCategory, setFilterCategory] = useState("all");
     const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
 
-    // 使用 useCallback 包装 fetchFn 避免无限循环
+    // 使用 useCallback 包装 fetchFn 避免无限循环（?all=1 带 token 时返回全部，含草稿）
     const fetchNews = useCallback(async () => {
-        const res = await api.get("/news");
+        const res = await api.get("/news", { params: { all: 1 } });
         return res.data;
     }, []);
 
@@ -151,6 +153,7 @@ export function NewsList() {
                         <TableRow>
                             <TableHead>标题</TableHead>
                             <TableHead>分类</TableHead>
+                            <TableHead>状态</TableHead>
                             <TableHead>作者</TableHead>
                             <TableHead>发布时间</TableHead>
                             <TableHead className="text-right">操作</TableHead>
@@ -170,6 +173,16 @@ export function NewsList() {
                                     </a>
                                 </TableCell>
                                 <TableCell>{item.category?.name || "未分类"}</TableCell>
+                                <TableCell>
+                                    <div className="flex flex-wrap gap-1">
+                                        {item.isPinned && (
+                                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">置顶</span>
+                                        )}
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.isPublished === false ? "bg-slate-100 text-slate-500" : "bg-green-100 text-green-700"}`}>
+                                            {item.isPublished === false ? "草稿" : "已发布"}
+                                        </span>
+                                    </div>
+                                </TableCell>
                                 <TableCell>{item.author}</TableCell>
                                 <TableCell>{new Date(item.date).toLocaleDateString()}</TableCell>
                                 <TableCell className="text-right">
@@ -262,6 +275,8 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
                 content: formData.content,
                 date: formData.date,
                 categoryId: Number(formData.categoryId),
+                isPublished: formData.isPublished === undefined ? true : Boolean(formData.isPublished),
+                isPinned: Boolean(formData.isPinned),
             };
             if (id) {
                 await api.put(`/news/${id}`, payload);
@@ -327,6 +342,32 @@ export function NewsEdit({ params }: { params?: { id?: string } }) {
                         <div className="space-y-2">
                             <Label>发布日期</Label>
                             <Input type="date" value={formData.date ? new Date(formData.date).toISOString().split('T')[0] : ""} onChange={e => setFormData({ ...formData, date: new Date(e.target.value).toISOString() })} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>发布状态</Label>
+                            <Select
+                                value={formData.isPublished === false ? "false" : "true"}
+                                onValueChange={val => setFormData({ ...formData, isPublished: val === "true" })}
+                            >
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="true">已发布</SelectItem>
+                                    <SelectItem value="false">草稿（前台不显示）</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>置顶</Label>
+                            <Select
+                                value={formData.isPinned ? "true" : "false"}
+                                onValueChange={val => setFormData({ ...formData, isPinned: val === "true" })}
+                            >
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="true">置顶（前台优先展示）</SelectItem>
+                                    <SelectItem value="false">不置顶</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 

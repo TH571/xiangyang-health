@@ -10,13 +10,13 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { UserCard } from "@/components/UserCard";
 import { ArticleCard } from "@/components/ArticleCard";
-import { OrganicDivider, SimpleDivider } from "@/components/OrganicDivider";
+import { OrganicDivider } from "@/components/OrganicDivider";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, AlertCircle, Calendar } from "lucide-react";
 import { api, getImageUrl, getApiErrorMessage } from "@/lib/api";
+import { OSS_BASE_URL } from "@/lib/config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCachedData } from "@/hooks/useCachedData";
-import { AvatarPlaceholder, ImagePlaceholder } from "@/components/Placeholder";
 import { UsersSectionSkeleton, ArticlesSectionSkeleton } from "@/components/Skeletons";
 
 // Interfaces based on usage
@@ -133,16 +133,10 @@ export default function Home() {
     }
   }, [loading]);
 
-  // 首页加载完成后，预加载其他 6 个板块页面
+  // 首页加载完成后，预加载其他板块页面 chunk（加速后续路由切换）
   useEffect(() => {
     if (!loading && !showSkeleton) {
-      // 预加载分类页面
-      import("./CategoryList").then(m => {
-        m.HealthFrontiers;
-        m.HealthLectures;
-        m.HealthScience;
-      });
-      // 预加载其他页面
+      import("./CategoryList");
       import("./ArticleDetail");
       import("./HealthWorkers");
       import("./Selection");
@@ -212,7 +206,7 @@ export default function Home() {
       <section
         className="relative py-12 md:py-24 overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50"
         style={{
-          backgroundImage: "url(https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/hero-bg.webp)",
+          backgroundImage: `url(${OSS_BASE_URL}/images/hero-bg.webp)`,
           backgroundSize: "cover",
           backgroundPosition: "center center",
           backgroundAttachment: "fixed",
@@ -290,7 +284,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-300 to-amber-300 rounded-full opacity-20 blur-3xl animate-pulse" />
                 <div className="absolute inset-4 bg-gradient-to-br from-orange-200/30 to-amber-200/30 rounded-full blur-2xl" />
                 <img
-                  src="https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/health-illustration.jpg"
+                  src={`${OSS_BASE_URL}/images/health-illustration.jpg`}
                   alt="健康插画"
                   className="relative w-full h-full object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                 />

@@ -4,7 +4,7 @@
  * Design Philosophy: 卡片浮动 - 浅阴影和微妙的悬停效果
  */
 
-import { Article } from "@/lib/mockData";
+import { Article } from "@/lib/types";
 import { ArrowRight } from "lucide-react";
 import { ImagePlaceholder } from "./Placeholder";
 

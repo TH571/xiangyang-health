@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
-import { api, uploadApi, uploadFileDirect, getImageUrl } from "@/lib/api";
+import { api, uploadFileDirect, getImageUrl } from "@/lib/api";
 
 export function Settings() {
     const { user, token, updateUser } = useAuth()!;
@@ -18,6 +18,7 @@ export function Settings() {
     const [profileLoading, setProfileLoading] = useState(false);
 
     // Password State
+    const [oldPassword, setOldPassword] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [pwLoading, setPwLoading] = useState(false);
@@ -93,12 +94,13 @@ export function Settings() {
         }
         setPwLoading(true);
         try {
-            await api.put(`/admins/${userId}/password`, { password });
+            await api.put(`/admins/${userId}/password`, { password, oldPassword });
             toast.success("密码修改成功");
             setPassword("");
             setConfirmPassword("");
-        } catch {
-            toast.error("修改失败");
+            setOldPassword("");
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "修改失败");
         } finally {
             setPwLoading(false);
         }
@@ -155,6 +157,10 @@ export function Settings() {
                     <div className="bg-white p-6 rounded-lg border shadow-sm">
                         <h3 className="text-lg font-semibold mb-4">修改密码</h3>
                         <form onSubmit={handleUpdatePassword} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>当前密码</Label>
+                                <Input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} required placeholder="输入当前密码" />
+                            </div>
                             <div className="space-y-2">
                                 <Label>新密码</Label>
                                 <Input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="至少6位" />

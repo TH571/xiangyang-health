@@ -12,8 +12,8 @@ import { SimpleDivider } from '@/components/OrganicDivider';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Search } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
-import { Article } from '@/lib/mockData';
-import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
+import { Article } from '@/lib/types';
+import { useCachedData } from "@/hooks/useCachedData";
 import { ImagePlaceholder } from "@/components/Placeholder";
 
 interface CategoryListProps {
@@ -45,9 +45,6 @@ export function CategoryListPage({ category }: CategoryListProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const config = categoryConfig[category];
-
-  // 清除缓存，确保获取最新数据
-  useEffect(() => { clearAllCache(); }, []);
 
   // 使用 useCallback 包装 fetch 函数避免无限循环
   const fetchNews = useCallback(async () => {

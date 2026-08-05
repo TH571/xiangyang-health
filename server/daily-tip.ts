@@ -12,7 +12,7 @@ import axios from "axios";
 // 天行数据 API 配置（需要注册获取 key）
 // 注册地址：https://www.tianapi.com/
 const TIANAPI_KEY = process.env.TIANAPI_KEY || "";
-const TIANAPI_HEALTH_URL = "http://api.tianapi.com/health/index";
+const TIANAPI_HEALTH_URL = "https://api.tianapi.com/health/index";
 
 // 备用科普知识库（当 API 不可用时使用）
 const FALLBACK_TIPS = [

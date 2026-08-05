@@ -45,6 +45,8 @@ model News {
   date       DateTime @default(now())
   categoryId Int
   category   Category @relation(fields: [categoryId], references: [id])
+  isPublished Boolean @default(true) // 是否发布（草稿 = false）
+  isPinned    Boolean @default(false) // 是否置顶
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -63,6 +65,7 @@ model Expert {
   introduction String   // Rich text or simple text
   categoryId   Int
   category     Category @relation(fields: [categoryId], references: [id])
+  isPinned     Boolean  @default(false) // 是否置顶
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

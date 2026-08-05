@@ -16,7 +16,7 @@ import {
 import { Pencil, Trash2, Plus, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
+import { useCachedData } from "@/hooks/useCachedData";
 
 interface DailyTip {
   id: number;
@@ -39,9 +39,8 @@ export function DailyTipList() {
 
   const { data: tips = [], loading, refetch } = useCachedData<DailyTip[]>("daily_tips", fetchTips);
 
-  // 后台管理页挂载时强制刷新，避免读到旧缓存
+  // 后台管理页挂载时强制刷新本列表，避免读到旧缓存
   useEffect(() => {
-    clearAllCache();
     refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -56,7 +55,6 @@ export function DailyTipList() {
         await api.post("/daily-tip", { content: current.content, source: current.source || "向阳健康" });
         toast.success("创建成功");
       }
-      clearAllCache();
       setIsOpen(false);
       setCurrent({ content: "", source: "向阳健康", isActive: true });
       refetch();
@@ -68,7 +66,6 @@ export function DailyTipList() {
     try {
       await api.delete(`/daily-tips/${id}`);
       toast.success("删除成功");
-      clearAllCache();
       refetch();
     } catch { toast.error("删除失败"); }
   };

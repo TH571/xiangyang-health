@@ -19,7 +19,7 @@ export function Footer() {
             <div className="space-y-5 md:col-span-1">
               <div className="flex items-center gap-2.5 justify-center md:justify-start">
                 <img
-                  src="https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/logo.png"
+                  src="/images/logo.png"
                   alt="向阳健康"
                   className="w-10 h-10 rounded-xl shadow-lg object-cover"
                 />

@@ -29,6 +29,8 @@ export function MediaPicker({ open, onClose, onSelect }: MediaPickerProps) {
   const [currentPrefix, setCurrentPrefix] = useState("");
   const [marker, setMarker] = useState<string | null>(null);
   const [nextMarker, setNextMarker] = useState<string | null>(null);
+  // marker 历史栈：记录已浏览过的分页标记，用于真正的"上一页"
+  const [history, setHistory] = useState<string[]>([]);
   const [isTruncated, setIsTruncated] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -42,6 +44,7 @@ export function MediaPicker({ open, onClose, onSelect }: MediaPickerProps) {
       setNextMarker(res.data.nextMarker);
       setIsTruncated(res.data.isTruncated);
       setCurrentPrefix(p);
+      setMarker(m);
     } catch (e: any) {
       toast.error("加载媒体失败: " + (e.message || "未知错误"));
     } finally {
@@ -49,9 +52,29 @@ export function MediaPicker({ open, onClose, onSelect }: MediaPickerProps) {
     }
   }, []);
 
+  // 回到指定路径的第一页（重置历史栈）
+  const goTo = (p: string, m: string | null) => {
+    setHistory([]);
+    fetchMedia(p, m);
+  };
+
+  const handleNext = () => {
+    if (nextMarker) {
+      setHistory(h => [...h, marker || ""]);
+      fetchMedia(currentPrefix, nextMarker);
+    }
+  };
+
+  const handlePrev = () => {
+    const prev = history[history.length - 1];
+    setHistory(h => h.slice(0, -1));
+    fetchMedia(currentPrefix, prev || null);
+  };
+
   useEffect(() => {
     if (open) {
       setSelected(null);
+      setHistory([]);
       fetchMedia("", null);
     }
   }, [open, fetchMedia]);
@@ -81,7 +104,7 @@ export function MediaPicker({ open, onClose, onSelect }: MediaPickerProps) {
             <h3 className="font-semibold text-slate-900">从媒体库选择图片</h3>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => fetchMedia(currentPrefix, null)}>
+            <Button variant="outline" size="sm" onClick={() => fetchMedia(currentPrefix, marker)}>
               <RefreshCw className="w-3.5 h-3.5 mr-1" /> 刷新
             </Button>
             <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded transition-colors">
@@ -98,11 +121,11 @@ export function MediaPicker({ open, onClose, onSelect }: MediaPickerProps) {
               placeholder="按路径筛选 (如: news/, avatar/)"
               value={prefix}
               onChange={e => setPrefix(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && (setMarker(null), fetchMedia(prefix, null))}
+              onKeyDown={e => e.key === "Enter" && goTo(prefix, null)}
               className="pl-10"
             />
           </div>
-          <Button variant="secondary" size="sm" onClick={() => { setMarker(null); fetchMedia(prefix, null); }}>
+          <Button variant="secondary" size="sm" onClick={() => goTo(prefix, null)}>
             筛选
           </Button>
         </div>
@@ -111,7 +134,7 @@ export function MediaPicker({ open, onClose, onSelect }: MediaPickerProps) {
         <div className="text-xs text-slate-500 px-6 py-2">
           当前路径: <span className="font-mono text-slate-700">{currentPrefix || "(根目录)"}</span>
           {currentPrefix && (
-            <button onClick={() => { setMarker(null); fetchMedia("", null); }} className="ml-2 text-orange-600 hover:underline">
+            <button onClick={() => goTo("", null)} className="ml-2 text-orange-600 hover:underline">
               回到根目录
             </button>
           )}
@@ -173,13 +196,13 @@ export function MediaPicker({ open, onClose, onSelect }: MediaPickerProps) {
             {isTruncated && " (还有更多)"}
           </div>
           <div className="flex items-center gap-2">
-            {marker && (
-              <Button variant="outline" size="sm" onClick={() => { setMarker(null); fetchMedia(currentPrefix, null); }}>
+            {history.length > 0 && (
+              <Button variant="outline" size="sm" onClick={handlePrev}>
                 <ChevronLeft className="w-4 h-4 mr-1" /> 上一页
               </Button>
             )}
             {isTruncated && (
-              <Button variant="outline" size="sm" onClick={() => nextMarker && fetchMedia(currentPrefix, nextMarker)}>
+              <Button variant="outline" size="sm" onClick={handleNext}>
                 下一页 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             )}

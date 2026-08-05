@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Heart } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
 import { ImagePlaceholder } from '@/components/Placeholder';
+import { toast } from "sonner";
 
 interface News {
   id: number;
@@ -43,6 +44,29 @@ export function ArticleDetailPage({ id }: ArticleDetailProps) {
   const [authorInfo, setAuthorInfo] = useState<AdminInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const title = article?.title || '向阳健康';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success('链接已复制');
+      }
+    } catch {
+      // 用户取消分享或复制失败，静默处理
+    }
+  };
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      navigate('/');
+    }
+  };
 
   useEffect(() => {
     const loadArticle = async () => {
@@ -126,7 +150,7 @@ export function ArticleDetailPage({ id }: ArticleDetailProps) {
       <section className="py-8 bg-white border-b border-border">
         <div className="container max-w-[1200px]">
           <button
-            onClick={() => window.history.back()}
+            onClick={handleBack}
             className="flex items-center gap-2 text-slate-600 hover:text-orange-600 mb-6 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -190,7 +214,10 @@ export function ArticleDetailPage({ id }: ArticleDetailProps) {
               {liked ? '已赞' : '赞'}
             </button>
 
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-slate-600 hover:bg-gray-200 transition-colors">
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 text-slate-600 hover:bg-gray-200 transition-colors"
+            >
               <Share2 className="w-5 h-5" />
               分享
             </button>

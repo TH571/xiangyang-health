@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import OSS from "ali-oss";
 import path from "path";
-import axios from "axios";
+import { getDailyTip } from "../server/daily-tip";
 
 // ===== Prisma =====
 const prisma = new PrismaClient();
@@ -30,47 +30,108 @@ function getContentType(ext: string): string {
   return t[ext.toLowerCase()] || "application/octet-stream";
 }
 
-// ===== Daily Tip =====
-const FALLBACK_TIPS = [
-  { content: "每天坚持运动 30 分钟，可以有效降低心血管疾病风险，增强免疫力。", source: "中国健康教育中心" },
-  { content: "人体所需三大宏量为：碳水 脂肪 蛋白质", source: "向阳健康" },
-  { content: "成年人每天应摄入 300-500 克蔬菜，深色蔬菜应占一半以上。", source: "中国居民膳食指南" },
-  { content: "每天饮水 1500-1700 毫升，少量多次，不要等到口渴了再喝水。", source: "中国营养学会" },
-  { content: "控制盐摄入量，每日不超过 5 克，有助于预防高血压。", source: "世界卫生组织" },
-  { content: "定期体检是预防疾病的重要手段，建议每年进行一次全面体检。", source: "中国健康教育中心" },
-  { content: "保持乐观心态，学会减压，对身心健康都有益处。", source: "国家卫健委" },
-  { content: "戒烟限酒，远离二手烟，是保护自己和家人健康的重要措施。", source: "中国疾控中心" },
-  { content: "饭前便后要洗手，养成良好的卫生习惯，预防疾病传播。", source: "中国疾控中心" },
-  { content: "多吃全谷物、坚果和豆类，减少精制食品摄入，有助于控制血糖。", source: "中国营养学会" },
-  { content: "久坐伤身，建议每工作 1 小时起身活动 5-10 分钟。", source: "世界卫生组织" },
-  { content: "晒太阳可以促进维生素 D 合成，每天 15-30 分钟日照有益健康。", source: "中国健康教育中心" },
-  { content: "控制体重在正常范围（BMI 18.5-23.9），可以降低多种慢性病风险。", source: "中国疾控中心" },
-  { content: "多吃富含 Omega-3 的食物，如深海鱼类，有助于心脑血管健康。", source: "中国营养学会" },
-  { content: "保持社交活动，与家人朋友多交流，有助于心理健康。", source: "国家卫健委" },
-];
-async function getDailyTip() {
-  if (process.env.TIANAPI_KEY) {
-    try {
-      const r = await axios.get("http://api.tianapi.com/health/index", { params: { key: process.env.TIANAPI_KEY }, timeout: 5000 });
-      if (r.data.code === 200 && r.data.result?.list?.length) return { content: r.data.result.list[0].brief || r.data.result.list[0].title, source: "天行数据" };
-    } catch {}
+// ===== 图片压缩（与 server/app.ts 保持一致） =====
+interface ImageConfig {
+  width: number;
+  height?: number;
+  quality: number;
+  fit: 'cover' | 'inside' | 'contain' | 'fill';
+}
+
+const IMAGE_CONFIG: Record<string, ImageConfig> = {
+  avatar: { width: 200, height: 200, quality: 80, fit: 'cover' },
+  news: { width: 1200, quality: 85, fit: 'inside' },
+  product: { width: 800, quality: 85, fit: 'inside' },
+  default: { width: 1200, quality: 85, fit: 'inside' },
+};
+
+async function compressImageBuffer(
+  fileBuffer: Buffer,
+  type: 'avatar' | 'news' | 'product' | 'default' = 'default'
+): Promise<Buffer> {
+  const sharp = (await import('sharp')).default;
+  const config = IMAGE_CONFIG[type];
+  let sharpInstance = sharp(fileBuffer);
+  const metadata = await sharpInstance.metadata();
+
+  if (type === 'avatar') {
+    sharpInstance = sharpInstance.resize(config.width, config.height, { fit: config.fit, position: 'center' });
+  } else {
+    sharpInstance = sharpInstance.resize(config.width, undefined, { fit: config.fit, withoutEnlargement: true });
   }
-  const doy = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-  return FALLBACK_TIPS[doy % FALLBACK_TIPS.length];
+
+  const format = metadata.format;
+  if (format === 'jpeg' || format === 'jpg') {
+    return await sharpInstance.jpeg({ quality: config.quality, progressive: true }).toBuffer();
+  } else if (format === 'png') {
+    return await sharpInstance.png({ compressionLevel: 9, progressive: true }).toBuffer();
+  } else if (format === 'webp') {
+    return await sharpInstance.webp({ quality: config.quality }).toBuffer();
+  } else if (format === 'gif') {
+    return fileBuffer;
+  } else {
+    return await sharpInstance.jpeg({ quality: config.quality, progressive: true }).toBuffer();
+  }
+}
+
+function isImageFile(filename: string): boolean {
+  const ext = path.extname(filename).toLowerCase();
+  return ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff'].includes(ext);
+}
+
+function isVideoFile(filename: string): boolean {
+  const ext = path.extname(filename).toLowerCase();
+  return ['.mp4', '.webm', '.ogg', '.mov', '.avi'].includes(ext);
 }
 
 // ===== Express App =====
 const app = express();
-const JWT_SECRET = process.env.JWT_SECRET || "xiangyang-secret-key";
-const upload = multer({ storage: multer.memoryStorage() });
 
-app.use(cors({ origin: (o, cb) => { if (!o) return cb(null, true); cb(null, true); }, credentials: true }));
+// JWT_SECRET 必须显式配置，拒绝使用默认值（防止用已知密钥伪造 token）
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("缺少 JWT_SECRET 环境变量，拒绝启动（安全要求）");
+}
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200 * 1024 * 1024 } });
+
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
+  .split(",").map(o => o.trim()).filter(Boolean);
+app.use(cors({
+  origin: (origin, callback) => {
+    // 允许无来源请求（同源/服务端调用）
+    if (!origin) return callback(null, true);
+    // 未配置白名单时回退到同源判断
+    if (ALLOWED_ORIGINS.length === 0) {
+      return callback(null, true);
+    }
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    console.warn("CORS blocked origin:", origin);
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-// 缓存中间件：GET 请求缓存 60 秒（CDN），客户端缓存 10 秒
+// 缓存中间件：仅公开 GET 接口走 CDN 缓存（60 秒），鉴权接口一律不缓存
+const PUBLIC_GET_PREFIXES = [
+  "/api/version",
+  "/api/categories",
+  "/api/news",
+  "/api/experts",
+  "/api/products",
+  "/api/daily-tip",
+  "/api/admins/by-username",
+  "/api/admins/by-name",
+];
 app.use((req, res, next) => {
-  if (req.method === "GET" && !req.path.startsWith("/api/auth")) {
+  const isPublicGet = req.method === "GET" && PUBLIC_GET_PREFIXES.some(p => req.path === p || req.path.startsWith(`${p}/`));
+  if (isPublicGet) {
     res.set("Cache-Control", "public, s-maxage=60, max-age=10");
+  } else {
+    res.set("Cache-Control", "no-store");
   }
   next();
 });
@@ -79,6 +140,33 @@ const auth = (req: any, res: any, next: any) => {
   try { req.user = jwt.verify(req.headers.authorization?.split(" ")[1] || "", JWT_SECRET); next(); }
   catch { res.status(401).json({ error: "Unauthorized" }); }
 };
+
+// 可选鉴权：成功返回用户信息，失败返回 null（用于"已登录可看草稿"类逻辑）
+const tryAuth = (req: any) => {
+  try { return jwt.verify(req.headers.authorization?.split(" ")[1] || "", JWT_SECRET); }
+  catch { return null; }
+};
+
+// 幂等启动迁移：首次部署后第一个请求自动补列（IF NOT EXISTS 保证可重入）
+let schemaMigrated = false;
+const SCHEMA_MIGRATIONS = [
+  `ALTER TABLE "News" ADD COLUMN IF NOT EXISTS "isPublished" BOOLEAN NOT NULL DEFAULT true`,
+  `ALTER TABLE "News" ADD COLUMN IF NOT EXISTS "isPinned" BOOLEAN NOT NULL DEFAULT false`,
+  `ALTER TABLE "Expert" ADD COLUMN IF NOT EXISTS "isPinned" BOOLEAN NOT NULL DEFAULT false`,
+];
+app.use(async (req, res, next) => {
+  if (!schemaMigrated) {
+    try {
+      for (const sql of SCHEMA_MIGRATIONS) {
+        await prisma.$executeRawUnsafe(sql);
+      }
+      schemaMigrated = true;
+    } catch (e: any) {
+      console.error("Schema migration failed (will retry on next request):", e.message);
+    }
+  }
+  next();
+});
 
 // ===== Routes =====
 app.get("/api/version", (req, res) => res.json({ version: "2.0.0", updated: new Date().toISOString() }));
@@ -100,8 +188,33 @@ app.post("/api/auth/login", async (req, res) => {
 });
 app.post("/api/upload", auth, upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-  try { res.json({ url: await uploadToOSS(req.file.buffer, req.file.originalname, String(req.query.type || "default")) }); }
-  catch { res.status(500).json({ error: "Upload failed" }); }
+  const fileBuffer = req.file.buffer;
+  const originalFilename = req.file.originalname;
+  const fileType = String(req.query.type || "default");
+
+  // 视频：原样上传到 video/ 目录
+  if (isVideoFile(originalFilename) || fileType === "video") {
+    try { res.json({ url: await uploadToOSS(fileBuffer, originalFilename, "video") }); }
+    catch { res.status(500).json({ error: "Failed to upload video" }); }
+    return;
+  }
+
+  // 非图片文件：原样上传
+  if (!isImageFile(originalFilename)) {
+    try { res.json({ url: await uploadToOSS(fileBuffer, originalFilename, fileType) }); }
+    catch { res.status(500).json({ error: "Failed to upload file" }); }
+    return;
+  }
+
+  // 图片：压缩后再上传
+  try {
+    let uploadBuffer = fileBuffer;
+    try {
+      const compressed = await compressImageBuffer(fileBuffer, fileType as any);
+      if (compressed.length < fileBuffer.length) uploadBuffer = compressed;
+    } catch { uploadBuffer = fileBuffer; }
+    res.json({ url: await uploadToOSS(uploadBuffer, originalFilename, fileType) });
+  } catch { res.status(500).json({ error: "Upload failed" }); }
 });
 // 浏览器直传 OSS：生成签名 URL
 app.post("/api/upload-url", auth, async (req, res) => {
@@ -123,20 +236,36 @@ app.post("/api/categories", auth, async (req, res) => { try { res.json(await pri
 app.put("/api/categories/:id", auth, async (req, res) => { try { res.json(await prisma.category.update({ where: { id: Number(req.params.id) }, data: req.body })); } catch { res.status(500).json({ error: "Failed to update" }); } });
 app.delete("/api/categories/:id", auth, async (req, res) => { try { await prisma.category.delete({ where: { id: Number(req.params.id) } }); res.json({ success: true }); } catch { res.status(500).json({ error: "Failed to delete" }); } });
 app.get("/api/news", async (req, res) => {
+  // 后台管理列表（?all=1 + 有效 token）返回全部（含草稿）；公开接口只返回已发布
+  const isAdminList = req.query.all === "1" && tryAuth(req);
   const news = await prisma.news.findMany({
-    select: { id: true, title: true, author: true, authorTitle: true, authorAvatar: true, cover: true, date: true, categoryId: true, category: true, createdAt: true },
-    orderBy: { date: "desc" },
+    where: isAdminList ? undefined : { isPublished: true },
+    select: { id: true, title: true, author: true, authorTitle: true, authorAvatar: true, cover: true, date: true, categoryId: true, category: true, createdAt: true, isPublished: true, isPinned: true },
+    orderBy: isAdminList ? { date: "desc" } : [{ isPinned: "desc" }, { date: "desc" }],
   });
   res.json(news);
 });
-app.get("/api/news/:id", async (req, res) => { const n = await prisma.news.findUnique({ where: { id: Number(req.params.id) }, include: { category: true } }); if (!n) return res.status(404).json({ error: "Not found" }); res.json(n); });
-app.post("/api/news", auth, async (req, res) => { try { const { title, author, authorTitle, authorAvatar, cover, content, date, categoryId } = req.body; res.json(await prisma.news.create({ data: { title, author, authorTitle, authorAvatar, cover, content, date: date ? new Date(date) : undefined, categoryId } })); } catch { res.status(500).json({ error: "Failed to create" }); } });
-app.put("/api/news/:id", auth, async (req, res) => { try { const d = req.body; res.json(await prisma.news.update({ where: { id: Number(req.params.id) }, data: { ...(d.title !== undefined && { title: d.title }), ...(d.author !== undefined && { author: d.author }), ...(d.authorTitle !== undefined && { authorTitle: d.authorTitle }), ...(d.authorAvatar !== undefined && { authorAvatar: d.authorAvatar }), ...(d.cover !== undefined && { cover: d.cover }), ...(d.content !== undefined && { content: d.content }), ...(d.date !== undefined && { date: new Date(d.date) }), ...(d.categoryId !== undefined && { categoryId: d.categoryId }) } })); } catch { res.status(500).json({ error: "Failed to update" }); } });
+app.get("/api/news/:id", async (req, res) => {
+  try {
+    const n = await prisma.news.findUnique({ where: { id: Number(req.params.id) }, include: { category: true } });
+    if (!n) return res.status(404).json({ error: "Not found" });
+    // 未发布的文章仅管理员可见
+    if (!n.isPublished && !tryAuth(req)) return res.status(404).json({ error: "Not found" });
+    res.json(n);
+  } catch { res.status(500).json({ error: "Failed to fetch" }); }
+});
+app.post("/api/news", auth, async (req, res) => {
+  try {
+    const { title, author, authorTitle, authorAvatar, cover, content, date, categoryId, isPublished, isPinned } = req.body;
+    res.json(await prisma.news.create({ data: { title, author, authorTitle, authorAvatar, cover, content, date: date ? new Date(date) : undefined, categoryId, isPublished: isPublished ?? true, isPinned: isPinned ?? false } }));
+  } catch { res.status(500).json({ error: "Failed to create" }); }
+});
+app.put("/api/news/:id", auth, async (req, res) => { try { const d = req.body; res.json(await prisma.news.update({ where: { id: Number(req.params.id) }, data: { ...(d.title !== undefined && { title: d.title }), ...(d.author !== undefined && { author: d.author }), ...(d.authorTitle !== undefined && { authorTitle: d.authorTitle }), ...(d.authorAvatar !== undefined && { authorAvatar: d.authorAvatar }), ...(d.cover !== undefined && { cover: d.cover }), ...(d.content !== undefined && { content: d.content }), ...(d.date !== undefined && { date: new Date(d.date) }), ...(d.categoryId !== undefined && { categoryId: d.categoryId }), ...(d.isPublished !== undefined && { isPublished: Boolean(d.isPublished) }), ...(d.isPinned !== undefined && { isPinned: Boolean(d.isPinned) }) } })); } catch { res.status(500).json({ error: "Failed to update" }); } });
 app.delete("/api/news/:id", auth, async (req, res) => { try { await prisma.news.delete({ where: { id: Number(req.params.id) } }); res.json({ success: true }); } catch { res.status(500).json({ error: "Failed to delete" }); } });
-app.get("/api/experts", async (req, res) => { res.json(await prisma.expert.findMany({ include: { category: true }, orderBy: { createdAt: "desc" } })); });
+app.get("/api/experts", async (req, res) => { res.json(await prisma.expert.findMany({ include: { category: true }, orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }] })); });
 app.get("/api/experts/:id", async (req, res) => { try { const e = await prisma.expert.findUnique({ where: { id: Number(req.params.id) }, include: { category: true } }); if (!e) return res.status(404).json({ error: "Expert not found" }); res.json(e); } catch { res.status(500).json({ error: "Failed to fetch" }); } });
-app.post("/api/experts", auth, async (req, res) => { try { const { name, title, avatar, unit, achievements, introduction, categoryId } = req.body; res.json(await prisma.expert.create({ data: { name, title, avatar, unit, achievements, introduction, categoryId } })); } catch { res.status(500).json({ error: "Failed to create" }); } });
-app.put("/api/experts/:id", auth, async (req, res) => { try { const d = req.body; res.json(await prisma.expert.update({ where: { id: Number(req.params.id) }, data: { ...(d.name !== undefined && { name: d.name }), ...(d.title !== undefined && { title: d.title }), ...(d.avatar !== undefined && { avatar: d.avatar }), ...(d.unit !== undefined && { unit: d.unit }), ...(d.achievements !== undefined && { achievements: d.achievements }), ...(d.introduction !== undefined && { introduction: d.introduction }), ...(d.categoryId !== undefined && { categoryId: d.categoryId }) } })); } catch { res.status(500).json({ error: "Failed to update" }); } });
+app.post("/api/experts", auth, async (req, res) => { try { const { name, title, avatar, unit, achievements, introduction, categoryId, isPinned } = req.body; res.json(await prisma.expert.create({ data: { name, title, avatar, unit, achievements, introduction, categoryId, isPinned: isPinned ?? false } })); } catch { res.status(500).json({ error: "Failed to create" }); } });
+app.put("/api/experts/:id", auth, async (req, res) => { try { const d = req.body; res.json(await prisma.expert.update({ where: { id: Number(req.params.id) }, data: { ...(d.name !== undefined && { name: d.name }), ...(d.title !== undefined && { title: d.title }), ...(d.avatar !== undefined && { avatar: d.avatar }), ...(d.unit !== undefined && { unit: d.unit }), ...(d.achievements !== undefined && { achievements: d.achievements }), ...(d.introduction !== undefined && { introduction: d.introduction }), ...(d.categoryId !== undefined && { categoryId: d.categoryId }), ...(d.isPinned !== undefined && { isPinned: Boolean(d.isPinned) }) } })); } catch { res.status(500).json({ error: "Failed to update" }); } });
 app.delete("/api/experts/:id", auth, async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -153,7 +282,20 @@ app.put("/api/products/:id", auth, async (req, res) => { try { const d = req.bod
 app.delete("/api/products/:id", auth, async (req, res) => { try { await prisma.product.delete({ where: { id: Number(req.params.id) } }); res.json({ success: true }); } catch { res.status(500).json({ error: "Failed to delete" }); } });
 app.get("/api/admins", auth, async (req, res) => { res.json(await prisma.admin.findMany({ select: { id: true, username: true, nickname: true, title: true, avatar: true, createdAt: true } })); });
 app.post("/api/admins", auth, async (req, res) => { try { res.json(await prisma.admin.create({ data: { username: req.body.username, password: await bcrypt.hash(req.body.password, 10) } })); } catch { res.status(500).json({ error: "Failed to create" }); } });
-app.put("/api/admins/:id/password", auth, async (req, res) => { try { await prisma.admin.update({ where: { id: Number(req.params.id) }, data: { password: await bcrypt.hash(req.body.password, 10) } }); res.json({ success: true }); } catch { res.status(500).json({ error: "Failed to change" }); } });
+app.put("/api/admins/:id/password", auth, async (req, res) => {
+  try {
+    const { password, oldPassword } = req.body;
+    if (!password || password.length < 6) return res.status(400).json({ error: "密码长度至少6位" });
+    const admin = await prisma.admin.findUnique({ where: { id: Number(req.params.id) } });
+    if (!admin) return res.status(404).json({ error: "用户不存在" });
+    // 校验旧密码，防止已登录会话被劫持后直接改密
+    if (oldPassword && !(await bcrypt.compare(oldPassword, admin.password))) {
+      return res.status(403).json({ error: "旧密码不正确" });
+    }
+    await prisma.admin.update({ where: { id: admin.id }, data: { password: await bcrypt.hash(password, 10) } });
+    res.json({ success: true });
+  } catch { res.status(500).json({ error: "Failed to change" }); }
+});
 app.get("/api/admins/:id", auth, async (req, res) => { const a = await prisma.admin.findUnique({ where: { id: Number(req.params.id) }, select: { id: true, username: true, nickname: true, title: true, avatar: true, createdAt: true } }); if (!a) return res.status(404).json({ error: "Not found" }); res.json(a); });
 app.put("/api/admins/:id", auth, async (req, res) => { try { const { nickname, title, avatar } = req.body; res.json(await prisma.admin.update({ where: { id: Number(req.params.id) }, data: { nickname, title, avatar } })); } catch { res.status(500).json({ error: "Failed to update" }); } });
 app.get("/api/daily-tip", async (req, res) => {
@@ -194,7 +336,7 @@ app.get("/api/media", auth, async (req, res) => {
   } catch (e: any) { res.status(500).json({ error: "Failed to list media", detail: e.message }); }
 });
 
-// 删除 OSS 文件（支持单个或批量）
+// 删除 OSS 文件（支持单个或批量）——先检查引用，被文章/专家/产品引用的文件不删除
 app.post("/api/media/delete", auth, async (req, res) => {
   try {
     const keys = req.body.keys;
@@ -204,8 +346,48 @@ app.post("/api/media/delete", auth, async (req, res) => {
     if (keys.length > 100) {
       return res.status(400).json({ error: "一次最多删除 100 个文件" });
     }
-    await getOSS().deleteMulti(keys);
-    res.json({ success: true, deleted: keys.length });
+
+    // 收集所有可能引用图片的字段
+    const [news, experts, products] = await Promise.all([
+      prisma.news.findMany({ select: { id: true, title: true, cover: true, content: true } }),
+      prisma.expert.findMany({ select: { id: true, name: true, avatar: true, introduction: true } }),
+      prisma.product.findMany({ select: { id: true, name: true, image: true } }),
+    ]);
+
+    const blocked: { key: string; refs: string[] }[] = [];
+    const deletable: string[] = [];
+
+    for (const key of keys) {
+      const publicUrl = `${OSS_DOMAIN}/${key}`;
+      const refs: string[] = [];
+      for (const n of news) {
+        if (n.cover === publicUrl || (n.content && n.content.includes(publicUrl))) {
+          refs.push(`文章「${n.title || n.id}」`);
+        }
+      }
+      for (const e of experts) {
+        if (e.avatar === publicUrl || (e.introduction && e.introduction.includes(publicUrl))) {
+          refs.push(`专家「${e.name || e.id}」`);
+        }
+      }
+      for (const p of products) {
+        if (p.image === publicUrl) {
+          refs.push(`产品「${p.name || p.id}」`);
+        }
+      }
+      if (refs.length > 0) {
+        blocked.push({ key, refs });
+      } else {
+        deletable.push(key);
+      }
+    }
+
+    let deleted = 0;
+    if (deletable.length > 0) {
+      await getOSS().deleteMulti(deletable);
+      deleted = deletable.length;
+    }
+    res.json({ success: true, deleted, blocked });
   } catch (e: any) { res.status(500).json({ error: "Failed to delete media", detail: e.message }); }
 });
 

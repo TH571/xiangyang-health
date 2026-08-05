@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { OSS_BASE_URL } from './config';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -71,33 +72,6 @@ api.interceptors.response.use(
       console.error('API network error:', error.config?.url);
     }
 
-    return Promise.reject(error);
-  }
-);
-
-// Helper for FormData uploads (don't set Content-Type header)
-// Note: Longer timeout for file uploads (30 seconds)
-export const uploadApi = axios.create({
-  baseURL: BASE_URL,
-  timeout: 30000,
-});
-
-uploadApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem('admin_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-uploadApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_user');
-      window.location.href = '/admin/login';
-    }
     return Promise.reject(error);
   }
 );
@@ -205,9 +179,8 @@ export function getImageUrl(path: string | null | undefined): string {
     // In production, use OSS domain
     if (API_BASE_URL && !API_BASE_URL.includes('localhost') && !API_BASE_URL.includes('127.0.0.1')) {
       // Replace /uploads with OSS domain
-      const ossDomain = 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com';
       const relativePath = path.replace('/uploads', '');
-      return `${ossDomain}/default${relativePath}`;
+      return `${OSS_BASE_URL}/default${relativePath}`;
     }
     // Development: use relative path, Vite will proxy it
     return path;
@@ -215,7 +188,7 @@ export function getImageUrl(path: string | null | undefined): string {
 
   // Assume it's an OSS path without domain (e.g., avatar/xxx.jpg)
   if (API_BASE_URL && !API_BASE_URL.includes('localhost') && !API_BASE_URL.includes('127.0.0.1')) {
-    return `https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/${path}`;
+    return `${OSS_BASE_URL}/${path}`;
   }
 
   return path;

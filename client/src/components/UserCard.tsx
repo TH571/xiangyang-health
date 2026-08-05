@@ -4,7 +4,7 @@
  * Design Philosophy: 卡片浮动 - 采用浅阴影和微妙的悬停效果
  */
 
-import { User } from "@/lib/mockData";
+import { User } from "@/lib/types";
 import { AvatarPlaceholder } from "./Placeholder";
 
 interface UserCardProps {

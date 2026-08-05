@@ -15,7 +15,6 @@ interface TeamMember {
   name: string;
   role: string;
   bio: string;
-  avatar: string;
 }
 
 const teamMembers: TeamMember[] = [
@@ -23,29 +22,25 @@ const teamMembers: TeamMember[] = [
     id: '1',
     name: '孙培龙',
     role: '',
-    bio: '浙工大龙游研究院院长',
-    avatar: 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/logo-1785899264896.png'
+    bio: '浙工大龙游研究院院长'
   },
   {
     id: '2',
     name: '张华',
     role: '',
-    bio: '浙工大84届生工校友，情绪健康领域专家',
-    avatar: 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/logo-1785899264896.png'
+    bio: '浙工大84届生工校友，情绪健康领域专家'
   },
   {
     id: '3',
     name: '葛铁汉',
     role: '',
-    bio: '浙工大校友，健康管理师',
-    avatar: 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/logo-1785899264896.png'
+    bio: '浙工大校友，健康管理师'
   },
   {
     id: '4',
     name: '崔妤頔',
     role: '',
-    bio: '浙工大校友，大健康领域法律专家',
-    avatar: 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/logo-1785899264896.png'
+    bio: '浙工大校友，大健康领域法律专家'
   }
 ];
 
@@ -134,11 +129,9 @@ export function AboutPage() {
                 key={member.id}
                 className="text-center rounded-lg overflow-hidden bg-gradient-to-b from-orange-50 to-white p-6 hover:shadow-lg transition-shadow"
               >
-                <img
-                  src={member.avatar}
-                  alt={member.name}
-                  className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-orange-200"
-                />
+                <div className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-orange-200 bg-orange-100 flex items-center justify-center">
+                  <span className="text-3xl font-bold text-orange-600">{member.name.charAt(0)}</span>
+                </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-1">{member.name}</h3>
                 {member.role && <p className="text-orange-600 font-semibold text-sm mb-3">{member.role}</p>}
                 <p className="text-slate-600 text-sm">{member.bio}</p>
@@ -163,7 +156,7 @@ export function AboutPage() {
               </div>
               <h3 className="font-semibold mb-2">邮箱</h3>
               <a
-                href="mailto:contact@xiangyang-health.com"
+                href="mailto:info-xyjk@xyjk.ren"
                 className="text-white/80 hover:text-white transition-colors"
               >
                 info-xyjk@xyjk.ren
@@ -177,10 +170,10 @@ export function AboutPage() {
               </div>
               <h3 className="font-semibold mb-2">电话</h3>
               <a
-                href="tel:+86-158 6919 5869"
+                href="tel:+8615869195869"
                 className="text-white/80 hover:text-white transition-colors"
               >
-                
+                158 6919 5869
               </a>
             </div>
 

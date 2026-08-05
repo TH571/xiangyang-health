@@ -14,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload, Star } from "lucide-react";
 import { toast } from "sonner";
-import { api, uploadApi, uploadFileDirect, getImageUrl } from "@/lib/api";
+import { api, uploadFileDirect, getImageUrl } from "@/lib/api";
 import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
 import { SmallAvatarPlaceholder } from "@/components/Placeholder";
 
@@ -150,16 +150,30 @@ export function SelectionEdit({ params }: { params?: { id?: string } }) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!formData.name?.trim()) {
+            toast.error("请输入产品名称");
+            return;
+        }
+        const rating = Number(formData.rating);
+        const categoryId = Number(formData.categoryId);
+        if (!categoryId || Number.isNaN(categoryId)) {
+            toast.error("请选择分类");
+            return;
+        }
+        if (Number.isNaN(rating) || rating < 0 || rating > 5) {
+            toast.error("评分需在 0-5 之间");
+            return;
+        }
         setLoading(true);
         try {
             const payload = {
-                name: formData.name,
-                rating: Number(formData.rating),
+                name: formData.name.trim(),
+                rating,
                 image: formData.image,
                 introduction: formData.introduction,
                 url: formData.url,
                 price: formData.price,
-                categoryId: Number(formData.categoryId),
+                categoryId,
             };
             if (id) {
                 await api.put(`/products/${id}`, payload);

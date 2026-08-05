@@ -15,7 +15,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2, Plus, ArrowLeft, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { api, uploadApi, uploadFileDirect, getImageUrl } from "@/lib/api";
+import { api, uploadFileDirect, getImageUrl } from "@/lib/api";
 import { useCachedData, clearAllCache } from "@/hooks/useCachedData";
 import { SmallAvatarPlaceholder } from "@/components/Placeholder";
 
@@ -29,6 +29,7 @@ interface Expert {
     introduction: string;
     categoryId: number;
     category: { name: string };
+    isPinned: boolean;
 }
 
 interface Category {
@@ -177,6 +178,7 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
                 achievements: formData.achievements,
                 introduction: formData.introduction,
                 categoryId: Number(formData.categoryId),
+                isPinned: Boolean(formData.isPinned),
             };
             if (id) {
                 await api.put(`/experts/${id}`, payload);
@@ -223,6 +225,19 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
                         <div className="space-y-2">
                             <Label>单位</Label>
                             <Input value={formData.unit || ""} onChange={e => setFormData({ ...formData, unit: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>置顶</Label>
+                            <Select
+                                value={formData.isPinned ? "true" : "false"}
+                                onValueChange={val => setFormData({ ...formData, isPinned: val === "true" })}
+                            >
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="true">置顶（健康人页优先展示）</SelectItem>
+                                    <SelectItem value="false">不置顶</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="col-span-2 space-y-2">
                             <Label>成就/经历 (简短)</Label>

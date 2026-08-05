@@ -24,6 +24,8 @@ export function MediaList() {
   const [currentPrefix, setCurrentPrefix] = useState("");
   const [marker, setMarker] = useState<string | null>(null);
   const [nextMarker, setNextMarker] = useState<string | null>(null);
+  // marker 历史栈：记录已浏览过的分页标记，用于真正的"上一页"
+  const [history, setHistory] = useState<string[]>([]);
   const [isTruncated, setIsTruncated] = useState(false);
   const [filterType, setFilterType] = useState("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -37,6 +39,7 @@ export function MediaList() {
       setNextMarker(res.data.nextMarker);
       setIsTruncated(res.data.isTruncated);
       setCurrentPrefix(p);
+      setMarker(m);
       setSelected(new Set());
     } catch (e: any) {
       toast.error("加载媒体文件失败: " + (e.message || "未知错误"));
@@ -49,20 +52,21 @@ export function MediaList() {
 
   const handleFilter = (p: string) => {
     setPrefix(p);
-    setMarker(null);
+    setHistory([]);
     fetchMedia(p, null);
   };
 
   const handleNext = () => {
     if (nextMarker) {
-      setMarker(nextMarker);
+      setHistory(h => [...h, marker || ""]);
       fetchMedia(currentPrefix, nextMarker);
     }
   };
 
   const handlePrev = () => {
-    setMarker(null);
-    fetchMedia(currentPrefix, null);
+    const prev = history[history.length - 1];
+    setHistory(h => h.slice(0, -1));
+    fetchMedia(currentPrefix, prev || null);
   };
 
   const handleCopyUrl = (url: string) => {
@@ -90,8 +94,16 @@ export function MediaList() {
     if (!confirm(`确定删除选中的 ${keys.length} 个文件？此操作不可恢复！`)) return;
     setDeleting(true);
     try {
-      await api.post("/media/delete", { keys });
-      toast.success(`已删除 ${keys.length} 个文件`);
+      const res = await api.post("/media/delete", { keys });
+      const { deleted, blocked } = res.data;
+      if (blocked && blocked.length > 0) {
+        const names = blocked.map((b: any) => b.key.split("/").pop()).join("、");
+        toast.warning(
+          `已删除 ${deleted} 个文件；${blocked.length} 个文件正被引用，已跳过：${names}`
+        );
+      } else {
+        toast.success(`已删除 ${deleted} 个文件`);
+      }
       setSelected(new Set());
       fetchMedia(currentPrefix, marker);
     } catch (e: any) {
@@ -284,7 +296,7 @@ export function MediaList() {
                 {isTruncated && " (还有更多)"}
               </div>
               <div className="flex gap-2">
-                {marker && (
+                {history.length > 0 && (
                   <Button variant="outline" size="sm" onClick={handlePrev}>
                     <ChevronLeft className="w-4 h-4 mr-1" /> 上一页
                   </Button>

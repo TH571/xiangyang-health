@@ -1,20 +1,15 @@
-import { jsxLocPlugin } from "@builder.io/vite-plugin-jsx-loc";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import fs from "node:fs";
 import path from "path";
 import { defineConfig } from "vite";
-import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
+const plugins = [react(), tailwindcss()];
 
 export default defineConfig({
   plugins,
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
   envDir: path.resolve(import.meta.dirname),
@@ -36,7 +31,7 @@ export default defineConfig({
             '@radix-ui/react-tabs',
           ],
           // 图表和富文本编辑器单独打包（体积大）
-          'editor-charts': ['recharts', 'quill', 'react-quill'],
+          'editor-charts': ['recharts', 'quill'],
         },
         // 控制 chunk 大小
         chunkFileNames: 'assets/js/[name]-[hash].js',
@@ -61,15 +56,7 @@ export default defineConfig({
     port: 5173,
     strictPort: false, // Will find next available port if 5173 is busy
     host: true,
-    allowedHosts: [
-      ".manuspre.computer",
-      ".manus.computer",
-      ".manus-asia.computer",
-      ".manuscomputer.ai",
-      ".manusvm.computer",
-      "localhost",
-      "127.0.0.1",
-    ],
+    allowedHosts: ["localhost", "127.0.0.1"],
     proxy: {
       "/api": {
         target: "http://localhost:3000",

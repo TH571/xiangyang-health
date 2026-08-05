@@ -38,7 +38,7 @@ export function AdminDashboard() {
         expertCount: (expertRes.data || []).length,
         productCount: (productRes.data || []).length,
         tipCount: (tipRes.data || []).length,
-        recentNews: news
+        recentNews: [...news]
           .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
           .slice(0, 5)
           .map((n: any) => ({
@@ -104,8 +104,8 @@ export function AdminDashboard() {
             className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md hover:border-orange-200 cursor-pointer transition-all group"
           >
             <div className="flex items-center justify-between mb-4">
-              <div className={`p-3 rounded-lg ${card.color} bg-opacity-10`}>
-                <card.icon className={`w-6 h-6 text-white`} style={{ color: card.color.replace('bg-', '') }} />
+              <div className={`p-3 rounded-lg ${card.color}`}>
+                <card.icon className="w-6 h-6 text-white" />
               </div>
               <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
             </div>

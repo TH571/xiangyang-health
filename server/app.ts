@@ -16,7 +16,11 @@ export const prisma = new PrismaClient();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-const JWT_SECRET = process.env.JWT_SECRET || "xiangyang-secret-key";
+// JWT_SECRET 必须显式配置，拒绝使用默认值（防止用已知密钥伪造 token）
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("缺少 JWT_SECRET 环境变量，拒绝启动（安全要求）");
+}
 
 // 图片压缩配置
 interface ImageConfig {
@@ -409,9 +413,15 @@ export function createApp() {
 
   app.put("/api/admins/:id/password", authenticate, async (req, res) => {
     try {
-      const { password } = req.body;
+      const { password, oldPassword } = req.body;
+      if (!password || password.length < 6) return res.status(400).json({ error: "密码长度至少6位" });
+      const admin = await prisma.admin.findUnique({ where: { id: Number(req.params.id) } });
+      if (!admin) return res.status(404).json({ error: "用户不存在" });
+      if (oldPassword && !(await bcrypt.compare(oldPassword, admin.password))) {
+        return res.status(403).json({ error: "旧密码不正确" });
+      }
       const hashedPassword = await bcrypt.hash(password, 10);
-      await prisma.admin.update({ where: { id: Number(req.params.id) }, data: { password: hashedPassword } });
+      await prisma.admin.update({ where: { id: admin.id }, data: { password: hashedPassword } });
       res.json({ success: true });
     } catch (e) { res.status(500).json({ error: "Failed to change password" }); }
   });

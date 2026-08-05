@@ -2,9 +2,14 @@
  * 将所有健康贴士的来源改为 韩勇航
  * 用法: npx tsx scripts/update-tip-source.ts
  */
-const API_BASE = "https://xyjk.ren/api";
-const USERNAME = "admin";
-const PASSWORD = "admin123";
+const API_BASE = process.env.XIANGYANG_API_BASE || "https://xyjk.ren/api";
+// 凭证从环境变量读取，禁止硬编码（安全要求）
+const USERNAME = process.env.XIANGYANG_ADMIN_USERNAME || "";
+const PASSWORD = process.env.XIANGYANG_ADMIN_PASSWORD || "";
+if (!USERNAME || !PASSWORD) {
+  console.error("请设置环境变量 XIANGYANG_ADMIN_USERNAME / XIANGYANG_ADMIN_PASSWORD 后再运行");
+  process.exit(1);
+}
 
 async function main() {
   // 登录

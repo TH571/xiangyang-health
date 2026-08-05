@@ -4,11 +4,15 @@
  */
 import { execSync } from "child_process";
 
-const API_BASE = "https://xyjk.ren/api";
+const API_BASE = process.env.XIANGYANG_API_BASE || "https://xyjk.ren/api";
 
-// Admin credentials
-const USERNAME = "admin";
-const PASSWORD = "admin123";
+// 凭证从环境变量读取，禁止硬编码（安全要求）
+const USERNAME = process.env.XIANGYANG_ADMIN_USERNAME || "";
+const PASSWORD = process.env.XIANGYANG_ADMIN_PASSWORD || "";
+if (!USERNAME || !PASSWORD) {
+  console.error("请设置环境变量 XIANGYANG_ADMIN_USERNAME / XIANGYANG_ADMIN_PASSWORD 后再运行");
+  process.exit(1);
+}
 
 function queryJSON(table: string, columns: string): any[] {
   const sql = `SELECT json_group_array(json_object(${columns})) FROM ${table};`;

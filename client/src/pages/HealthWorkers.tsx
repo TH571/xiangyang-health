@@ -9,7 +9,6 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ArrowLeft } from 'lucide-react';
 import { api, getImageUrl } from '@/lib/api';
-import { toast } from "sonner";
 import { useCachedData } from "@/hooks/useCachedData";
 import { AvatarPlaceholder } from "@/components/Placeholder";
 
@@ -20,8 +19,6 @@ interface Expert {
   specialty: string;
   bio: string;
   avatar: string;
-  rating: number;
-  consultations: number;
   expertise: string[];
   introduction: string;
   experience: string;
@@ -66,8 +63,6 @@ export function HealthWorkersPage() {
       specialty: item.category?.name || '其他',
       bio: item.unit || '',
       avatar: getImageUrl(item.avatar) || '',
-      rating: item.score || 5.0,
-      consultations: Math.floor(Math.random() * 1000) + 100,
       expertise: item.achievements ? [item.achievements] : [],
       introduction: item.introduction,
       experience: `${item.unit || ''} | ${item.achievements || ''}`
@@ -100,7 +95,6 @@ export function HealthWorkersPage() {
 
       {/* Hero Section */}
       <section className="relative py-12 md:py-16 bg-gradient-to-r from-orange-500 to-amber-600 overflow-hidden">
-        {/* ... (Hero content same as before) ... */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />

@@ -31,13 +31,11 @@ class ErrorBoundary extends Component<Props, State> {
               className="text-destructive mb-6 flex-shrink-0"
             />
 
-            <h2 className="text-xl mb-4">An unexpected error occurred.</h2>
+            <h2 className="text-xl mb-4">页面加载出错了</h2>
 
-            <div className="p-4 w-full rounded bg-muted overflow-auto mb-6">
-              <pre className="text-sm text-muted-foreground whitespace-break-spaces">
-                {this.state.error?.stack}
-              </pre>
-            </div>
+            <p className="text-muted-foreground mb-6 text-center">
+              抱歉，页面出现了意外错误。请刷新重试，如果问题持续，请联系我们。
+            </p>
 
             <button
               onClick={() => window.location.reload()}
@@ -48,7 +46,7 @@ class ErrorBoundary extends Component<Props, State> {
               )}
             >
               <RotateCcw size={16} />
-              Reload Page
+              刷新页面
             </button>
           </div>
         </div>
