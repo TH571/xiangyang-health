@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import OSS from "ali-oss";
 import path from "path";
+import sharp from "sharp";
 import axios from "axios";
 
 // ===== Prisma =====
@@ -78,7 +79,6 @@ async function compressImageBuffer(
   fileBuffer: Buffer,
   type: 'avatar' | 'news' | 'product' | 'default' = 'default'
 ): Promise<Buffer> {
-  const sharp = (await import('sharp')).default;
   const config = IMAGE_CONFIG[type];
   let sharpInstance = sharp(fileBuffer);
   const metadata = await sharpInstance.metadata();
@@ -224,14 +224,14 @@ app.post("/api/upload", auth, upload.single("file"), async (req, res) => {
   // 视频：原样上传到 video/ 目录
   if (isVideoFile(originalFilename) || fileType === "video") {
     try { res.json({ url: await uploadToOSS(fileBuffer, originalFilename, "video") }); }
-    catch { res.status(500).json({ error: "Failed to upload video" }); }
+    catch (e: any) { console.error("Video upload failed:", e.message); res.status(500).json({ error: "Failed to upload video" }); }
     return;
   }
 
   // 非图片文件：原样上传
   if (!isImageFile(originalFilename)) {
     try { res.json({ url: await uploadToOSS(fileBuffer, originalFilename, fileType) }); }
-    catch { res.status(500).json({ error: "Failed to upload file" }); }
+    catch (e: any) { console.error("File upload failed:", e.message); res.status(500).json({ error: "Failed to upload file" }); }
     return;
   }
 
@@ -248,9 +248,9 @@ app.post("/api/upload", auth, upload.single("file"), async (req, res) => {
         const srcExt = path.extname(originalFilename).toLowerCase();
         uploadName = srcExt === ".webp" ? `${base}.webp` : `${base}.jpg`;
       }
-    } catch { uploadBuffer = fileBuffer; }
+    } catch (e: any) { console.error("Image compress failed, upload original:", e.message); uploadBuffer = fileBuffer; }
     res.json({ url: await uploadToOSS(uploadBuffer, uploadName, fileType) });
-  } catch { res.status(500).json({ error: "Upload failed" }); }
+  } catch (e: any) { console.error("Image upload failed:", e.message); res.status(500).json({ error: "Upload failed" }); }
 });
 // 浏览器直传 OSS：生成签名 URL
 app.post("/api/upload-url", auth, async (req, res) => {
