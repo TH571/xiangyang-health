@@ -268,6 +268,7 @@ export default function Home() {
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button
                   size="lg"
+                  onClick={() => navigate("/science")}
                   className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group"
                 >
                   开始探索
@@ -276,6 +277,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   variant="outline"
+                  onClick={() => navigate("/about")}
                   className="border-2 border-orange-300 text-orange-600 hover:bg-orange-50 hover:border-orange-400 font-semibold transition-all duration-300"
                 >
                   了解更多
@@ -394,6 +396,7 @@ export default function Home() {
           <div className="text-center mt-12">
             <Button
               variant="outline"
+              onClick={() => navigate("/workers")}
               className="border-2 border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white hover:shadow-lg hover:shadow-orange-400/25 font-semibold px-8 transition-all duration-300"
             >
               查看更多健康人
@@ -571,29 +574,6 @@ export default function Home() {
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
             </Button>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="relative py-24 bg-gradient-to-br from-orange-600 via-orange-700 to-red-600 text-white overflow-hidden">
-        {/* Decorative Background Elements */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-400/10 rounded-full blur-3xl" />
-
-        <div className="container relative z-10 text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-            准备开始您的健康之旅？
-          </h2>
-          <p className="text-xl md:text-2xl text-orange-100 mb-10 max-w-3xl mx-auto leading-relaxed">
-            加入向阳健康社区，获取每日健康知识和专业建议
-          </p>
-          <Button
-            size="lg"
-            className="bg-white text-orange-600 hover:bg-gray-50 font-semibold px-8 py-6 text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
-          >
-            立即加入
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
         </div>
       </section>
 
