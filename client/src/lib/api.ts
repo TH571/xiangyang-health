@@ -118,13 +118,16 @@ export async function uploadFileDirect(file: File, type: string = "default"): Pr
   const res = await fetch(`${BASE_URL}/upload-url`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({ filename: file.name, type }),
+    body: JSON.stringify({ filename: file.name, type, mimeType: file.type || undefined }),
   });
   const data = await res.json();
   if (!data.uploadUrl) throw new Error(data.error || '获取上传链接失败');
 
-  // 不设置 Content-Type，浏览器自动发送即可，与 OSS 签名兼容
-  const uploadRes = await fetch(data.uploadUrl, { method: 'PUT', body: file });
+  // 用后端返回的 contentType（即浏览器 file.type）发送，保证与签名一致
+  const uploadRes = await fetch(data.uploadUrl, {
+    method: 'PUT', body: file,
+    headers: { 'Content-Type': data.contentType },
+  });
   if (!uploadRes.ok) throw new Error('OSS 上传失败');
 
   return data.publicUrl;

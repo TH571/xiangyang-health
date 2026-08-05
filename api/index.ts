@@ -106,13 +106,14 @@ app.post("/api/upload", auth, upload.single("file"), async (req, res) => {
 // 浏览器直传 OSS：生成签名 URL
 app.post("/api/upload-url", auth, async (req, res) => {
   try {
-    const { filename, type } = req.body;
+    const { filename, type, mimeType } = req.body;
     if (!filename) return res.status(400).json({ error: "Filename required" });
     const ext = path.extname(filename);
     const key = `${type || "default"}/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    // 不签名 Content-Type，浏览器自动发送的 Content-Type 即可通过
-    const signedUrl = getOSS().signatureUrl(key, { expires: 3600, method: "PUT" });
-    res.json({ uploadUrl: signedUrl, publicUrl: `${OSS_DOMAIN}/${key}` });
+    // 用前端传来的 mimeType 签名（浏览器 file.type），保证签名与请求头一致
+    const contentType = mimeType || getContentType(ext) || "application/octet-stream";
+    const signedUrl = getOSS().signatureUrl(key, { expires: 3600, method: "PUT", "content-type": contentType });
+    res.json({ uploadUrl: signedUrl, publicUrl: `${OSS_DOMAIN}/${key}`, contentType });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
   }
