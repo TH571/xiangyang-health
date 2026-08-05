@@ -22,30 +22,30 @@ const teamMembers: TeamMember[] = [
   {
     id: '1',
     name: '孙培龙',
-    role: '会长',
+    role: '',
     bio: '浙工大龙游研究院院长',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1'
+    avatar: 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/logo-1785899264896.png'
   },
   {
     id: '2',
     name: '张华',
-    role: '执行会长',
+    role: '',
     bio: '浙工大84届生工校友，情绪健康领域专家',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2'
+    avatar: 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/logo-1785899264896.png'
   },
   {
     id: '3',
     name: '葛铁汉',
-    role: '常务副会长',
+    role: '',
     bio: '浙工大校友，健康照明专家',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3'
+    avatar: 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/logo-1785899264896.png'
   },
   {
     id: '4',
     name: '崔妤頔',
-    role: '秘书长',
+    role: '',
     bio: '浙工大校友，大健康领域法律专家',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=4'
+    avatar: 'https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/avatar/logo-1785899264896.png'
   }
 ];
 
@@ -172,7 +172,7 @@ export function AboutPage() {
                   className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-orange-200"
                 />
                 <h3 className="text-lg font-bold text-slate-900 mb-1">{member.name}</h3>
-                <p className="text-orange-600 font-semibold text-sm mb-3">{member.role}</p>
+                {member.role && <p className="text-orange-600 font-semibold text-sm mb-3">{member.role}</p>}
                 <p className="text-slate-600 text-sm">{member.bio}</p>
               </div>
             ))}
