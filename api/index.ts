@@ -238,11 +238,18 @@ app.post("/api/upload", auth, upload.single("file"), async (req, res) => {
   // 图片：压缩后再上传
   try {
     let uploadBuffer = fileBuffer;
+    let uploadName = originalFilename;
     try {
       const compressed = await compressImageBuffer(fileBuffer, fileType as any);
-      if (compressed.length < fileBuffer.length) uploadBuffer = compressed;
+      if (compressed.length < fileBuffer.length) {
+        uploadBuffer = compressed;
+        // 压缩后格式可能变化（PNG/BMP/TIFF → JPEG），修正扩展名避免 MIME 错配
+        const base = originalFilename.replace(/\.[^.]+$/, "");
+        const srcExt = path.extname(originalFilename).toLowerCase();
+        uploadName = srcExt === ".webp" ? `${base}.webp` : `${base}.jpg`;
+      }
     } catch { uploadBuffer = fileBuffer; }
-    res.json({ url: await uploadToOSS(uploadBuffer, originalFilename, fileType) });
+    res.json({ url: await uploadToOSS(uploadBuffer, uploadName, fileType) });
   } catch { res.status(500).json({ error: "Upload failed" }); }
 });
 // 浏览器直传 OSS：生成签名 URL

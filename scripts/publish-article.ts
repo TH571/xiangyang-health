@@ -53,9 +53,40 @@ const ossClient = new OSS({
 
 const prisma = new PrismaClient();
 
+/** 图片压缩：非图片（PDF 等）原样；图片统一压到 1280px 内，JPEG q85 */
+async function compressImageFile(filePath: string, buf: Buffer): Promise<{ buf: Buffer; ext: string }> {
+  const srcExt = path.extname(filePath).toLowerCase();
+  const IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tiff"];
+  if (!IMAGE_EXTS.includes(srcExt)) return { buf, ext: srcExt };
+  try {
+    const sharp = (await import("sharp")).default;
+    const image = sharp(buf);
+    const meta = await image.metadata();
+    // 动图不压缩
+    if (meta.format === "gif") return { buf, ext: srcExt };
+    const resized = image.resize(1280, undefined, { fit: "inside", withoutEnlargement: true });
+    let out: Buffer;
+    let outExt: string;
+    if (meta.format === "webp") {
+      out = await resized.webp({ quality: 85 }).toBuffer();
+      outExt = ".webp";
+    } else {
+      out = await resized.jpeg({ quality: 85, progressive: true }).toBuffer();
+      outExt = ".jpg";
+    }
+    // 压缩后更大则保留原图
+    if (out.length >= buf.length) return { buf, ext: srcExt };
+    return { buf: out, ext: outExt };
+  } catch {
+    return { buf, ext: srcExt };
+  }
+}
+
 async function uploadFile(filePath: string, type: string): Promise<string> {
-  const buf = fs.readFileSync(filePath);
-  const ext = path.extname(filePath).toLowerCase();
+  const rawBuf = fs.readFileSync(filePath);
+  const srcExt = path.extname(filePath).toLowerCase();
+  // 图片压缩后再上传，其他类型（PDF）原样
+  const { buf, ext } = srcExt === ".pdf" ? { buf: rawBuf, ext: srcExt } : await compressImageFile(filePath, rawBuf);
   const key = `${type}/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
   const mime: Record<string, string> = {
     ".pdf": "application/pdf", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",

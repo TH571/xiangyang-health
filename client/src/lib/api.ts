@@ -88,9 +88,17 @@ api.interceptors.response.use(
  * 不走 Vercel 函数中转，避免跨洲超时
  */
 
-/** 图片压缩：最大宽度 1024px，转 JPEG 质量 0.85 */
-async function compressImage(file: File, maxWidth: number = 1024): Promise<{ blob: Blob; name: string }> {
-  // 跳过 GIF（保持动画）和非图片
+/** 图片压缩参数：按用途控制最大宽度（约 2x 显示尺寸，够清晰又不浪费） */
+const IMAGE_UPLOAD_WIDTH: Record<string, number> = {
+  avatar: 400,   // 头像显示 200px
+  product: 800,  // 商品图显示 300px
+  news: 1280,    // 封面/正文图片
+  default: 1280,
+};
+
+/** 图片压缩：最大宽度按用途分档，转 JPEG 质量 0.8（每次上传必压缩） */
+async function compressImage(file: File, maxWidth: number = 1280): Promise<{ blob: Blob; name: string }> {
+  // 跳过 GIF（保持动画）、SVG 和非图片（视频等）
   if (!file.type.startsWith('image/') || file.type === 'image/gif' || file.type === 'image/svg+xml') {
     return { blob: file, name: file.name };
   }
@@ -109,7 +117,7 @@ async function compressImage(file: File, maxWidth: number = 1024): Promise<{ blo
       canvas.toBlob(blob => {
         if (blob) resolve({ blob, name: newName });
         else reject(new Error('图片压缩失败'));
-      }, 'image/jpeg', 0.85);
+      }, 'image/jpeg', 0.8);
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('图片加载失败')); };
     img.src = url;
@@ -117,8 +125,9 @@ async function compressImage(file: File, maxWidth: number = 1024): Promise<{ blo
 }
 
 export async function uploadFileDirect(file: File, type: string = "default"): Promise<string> {
-  // 压缩图片
-  const { blob, name } = await compressImage(file, 1024);
+  // 按用途分档压缩（视频等非图片原样上传）
+  const maxWidth = IMAGE_UPLOAD_WIDTH[type] || IMAGE_UPLOAD_WIDTH.default;
+  const { blob, name } = await compressImage(file, maxWidth);
   const uploadFile = new File([blob], name, { type: 'image/jpeg' });
 
   const token = localStorage.getItem('admin_token');
