@@ -3,10 +3,11 @@
  * 页脚信息、链接和社交媒体
  */
 
-import { Facebook, Instagram, Twitter, Music } from "lucide-react";
+import { useLocation } from "wouter";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [, navigate] = useLocation();
 
   return (
     <footer className="bg-gradient-to-b from-slate-900 to-slate-950 text-gray-300 mt-20">
@@ -37,31 +38,31 @@ export function Footer() {
               <h3 className="font-bold text-white mb-4 text-sm md:text-base md:mb-5">公司</h3>
               <ul className="space-y-2 md:space-y-3 text-xs md:text-sm">
                 <li>
-                  <a
-                    href="#"
+                  <button
+                    onClick={() => navigate("/about")}
                     className="hover:text-orange-400 transition-colors duration-200 relative group"
                   >
                     关于我们
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <button
+                    onClick={() => navigate("/about")}
                     className="hover:text-orange-400 transition-colors duration-200 relative group"
                   >
                     联系我们
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <button
+                    onClick={() => navigate("/workers")}
                     className="hover:text-orange-400 transition-colors duration-200 relative group"
                   >
-                    加入我们
+                    健康人
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -71,31 +72,31 @@ export function Footer() {
               <h3 className="font-bold text-white mb-4 text-sm md:text-base md:mb-5">服务</h3>
               <ul className="space-y-2 md:space-y-3 text-xs md:text-sm">
                 <li>
-                  <a
-                    href="#"
+                  <button
+                    onClick={() => navigate("/selection")}
                     className="hover:text-orange-400 transition-colors duration-200 relative group"
                   >
-                    服务项目
+                    向阳优品
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <button
+                    onClick={() => navigate("/science")}
                     className="hover:text-orange-400 transition-colors duration-200 relative group"
                   >
-                    检测支持
+                    健康科普
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <button
+                    onClick={() => navigate("/about")}
                     className="hover:text-orange-400 transition-colors duration-200 relative group"
                   >
                     隐私政策
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -104,30 +105,30 @@ export function Footer() {
             <div className="text-center md:col-span-1">
               <h3 className="font-bold text-white mb-4 text-sm md:text-base md:mb-5">关注我们</h3>
               <div className="flex gap-2 md:gap-3 justify-center">
-                <a
-                  href="#"
+                <button
+                  onClick={() => navigate("/frontiers")}
                   className="w-9 h-9 md:w-11 md:h-11 rounded-xl bg-gray-800 hover:bg-orange-600 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-orange-600/25"
                 >
-                  <Facebook className="w-4 h-4 md:w-5 md:h-5" />
-                </a>
-                <a
-                  href="#"
+                  <span className="text-xs font-bold text-gray-400">NEWS</span>
+                </button>
+                <button
+                  onClick={() => navigate("/lectures")}
                   className="w-9 h-9 md:w-11 md:h-11 rounded-xl bg-gray-800 hover:bg-orange-600 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-orange-600/25"
                 >
-                  <Instagram className="w-4 h-4 md:w-5 md:h-5" />
-                </a>
-                <a
-                  href="#"
+                  <span className="text-xs font-bold text-gray-400">讲堂</span>
+                </button>
+                <button
+                  onClick={() => navigate("/science")}
                   className="w-9 h-9 md:w-11 md:h-11 rounded-xl bg-gray-800 hover:bg-orange-600 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-orange-600/25"
                 >
-                  <Twitter className="w-4 h-4 md:w-5 md:h-5" />
-                </a>
-                <a
-                  href="#"
+                  <span className="text-xs font-bold text-gray-400">科普</span>
+                </button>
+                <button
+                  onClick={() => navigate("/workers")}
                   className="w-9 h-9 md:w-11 md:h-11 rounded-xl bg-gray-800 hover:bg-orange-600 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-orange-600/25"
                 >
-                  <Music className="w-4 h-4 md:w-5 md:h-5" />
-                </a>
+                  <span className="text-xs font-bold text-gray-400">健康人</span>
+                </button>
               </div>
             </div>
           </div>
@@ -142,27 +143,27 @@ export function Footer() {
             &copy; {currentYear} 向阳健康. All rights reserved.
           </p>
           <div className="flex gap-6 mt-4 md:mt-0">
-            <a
-              href="#"
+            <button
+              onClick={() => navigate("/about")}
               className="hover:text-orange-400 transition-colors duration-200 relative group"
             >
               隐私政策
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-            </a>
-            <a
-              href="#"
+            </button>
+            <button
+              onClick={() => navigate("/about")}
               className="hover:text-orange-400 transition-colors duration-200 relative group"
             >
               服务条款
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-            </a>
-            <a
-              href="#"
+            </button>
+            <button
+              onClick={() => navigate("/about")}
               className="hover:text-orange-400 transition-colors duration-200 relative group"
             >
               联系我们
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-            </a>
+            </button>
           </div>
         </div>
       </div>
