@@ -117,7 +117,7 @@ export function HealthWorkersPage() {
 
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">浙工大健康人</h1>
           <p className="text-orange-50 max-w-2xl text-lg opacity-90">
-            汇聚专业的健康专家团队，为浙工大学生提供全方位的健康指导
+            汇聚专业的健康专家团队 个人，为浙工大人提供全方位的健康指导
           </p>
         </div>
       </section>
