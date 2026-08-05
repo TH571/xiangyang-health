@@ -74,7 +74,7 @@ export function AboutPage() {
 
           <h1 className="text-4xl md:text-5xl font-bold mb-4">关于向阳健康</h1>
           <p className="text-lg text-white/90 max-w-2xl">
-            向阳健康是浙江工业大学大健康校友联盟的官方网站，我们的使命是守护每一位浙工大人的健康，让健康成为生活的习惯
+            向阳健康是浙江工业大学大健康校友联盟的官方网站，我们的使命是守护每一位浙工大人的健康，让健康成为生活的习惯。域名 www.xyjk.ren 为"向阳健康人"的拼音缩写
           </p>
         </div>
       </section>
