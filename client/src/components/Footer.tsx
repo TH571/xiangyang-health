@@ -82,15 +82,6 @@ export function Footer() {
                 </li>
                 <li>
                   <button
-                    onClick={() => navigate("/science")}
-                    className="hover:text-orange-400 transition-colors duration-200 relative group"
-                  >
-                    健康科普
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-200" />
-                  </button>
-                </li>
-                <li>
-                  <button
                     onClick={() => navigate("/privacy")}
                     className="hover:text-orange-400 transition-colors duration-200 relative group"
                   >
