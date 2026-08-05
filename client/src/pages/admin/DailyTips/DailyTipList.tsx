@@ -39,6 +39,13 @@ export function DailyTipList() {
 
   const { data: tips = [], loading, refetch } = useCachedData<DailyTip[]>("daily_tips", fetchTips);
 
+  // 后台管理页挂载时强制刷新，避免读到旧缓存
+  useEffect(() => {
+    clearAllCache();
+    refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
