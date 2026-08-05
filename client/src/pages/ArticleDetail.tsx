@@ -168,7 +168,7 @@ export function ArticleDetailPage({ id }: ArticleDetailProps) {
       <section className="py-12 bg-white">
         <div className="container max-w-[1200px]">
           <div
-            className="prose prose-lg max-w-none mb-8 ql-editor text-[18px] [&_p]:mb-[1.75em] [&_p]:indent-[2em]"
+            className="prose prose-lg max-w-none mb-8 ql-editor text-[18px] [&_p]:mb-[1.75em] [&_p]:indent-[2em] [&_.ql-align-center]:text-center [&_.ql-align-center_img]:inline-block [&_.ql-align-center_img]:max-w-full [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg"
             style={{
               lineHeight: '2.0',
             }}

@@ -336,6 +336,19 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                 .ql-video-wrapper video.ql-video {
                     background: #000;
                 }
+                /* 图片居中 */
+                .ql-editor .ql-align-center {
+                    text-align: center;
+                }
+                .ql-editor .ql-align-center img {
+                    display: inline-block;
+                    max-width: 100%;
+                }
+                .ql-editor img {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 4px;
+                }
             `}</style>
         </div>
     );
