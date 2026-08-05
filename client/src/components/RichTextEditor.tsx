@@ -172,7 +172,7 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                                 onChangeRef.current(quill.root.innerHTML);
                                 setTimeout(() => { isUpdatingRef.current = false; }, 100);
                             } catch (error) {
-                                toast.error("图片上传失败");
+                                toast.error("图片上传失败: " + (error.message || "未知错误"));
                             }
                         }
                     };
@@ -254,7 +254,7 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                     onChangeRef.current(quill.root.innerHTML);
                     setTimeout(() => { isUpdatingRef.current = false; }, 100);
                 } catch (error) {
-                    toast.error("粘贴图片上传失败");
+                    toast.error("粘贴图片上传失败: " + (error.message || "未知错误"));
                 }
             };
 
