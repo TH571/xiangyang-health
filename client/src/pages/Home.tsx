@@ -353,7 +353,7 @@ export default function Home() {
               浙工大健康人
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-              汇聚专业的健康专家团队，为浙工大人提供全方位的健康指导
+              汇聚专业的健康专家团队 个人，为浙工大人提供全方位的健康指导
             </p>
           </div>
 
