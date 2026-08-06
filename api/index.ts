@@ -127,13 +127,14 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .split(",").map(o => o.trim()).filter(Boolean);
 app.use(cors({
   origin: (origin, callback) => {
-    // 允许无来源请求（同源/服务端调用）
     if (!origin) return callback(null, true);
-    // 未配置白名单时回退到同源判断
-    if (ALLOWED_ORIGINS.length === 0) {
-      return callback(null, true);
-    }
+    if (ALLOWED_ORIGINS.length === 0) return callback(null, true);
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    // 通配：xyjk.ren 及其子域名
+    try {
+      const u = new URL(origin);
+      if (u.hostname === 'xyjk.ren' || u.hostname.endsWith('.xyjk.ren')) return callback(null, true);
+    } catch {}
     console.warn("CORS blocked origin:", origin);
     callback(new Error("Not allowed by CORS"));
   },
