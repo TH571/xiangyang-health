@@ -61,32 +61,25 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [dailyTip, setDailyTip] = useState<DailyTip | null>(null);
 
-  // 使用 useCallback 包装 fetch 函数避免无限循环
-  const fetchExperts = useCallback(async () => {
-    const res = await api.get('/experts');
+  // 首页组合请求：一次 API 调用替代 3 次（news + experts + daily-tip）
+  const fetchHome = useCallback(async () => {
+    const res = await api.get('/home');
     return res.data;
   }, []);
 
-  const fetchNews = useCallback(async () => {
-    const res = await api.get('/news');
-    return res.data;
-  }, []);
-
-  // 分别缓存专家和新闻数据
-  const { data: expertsData = [], loading: expertsLoading } = useCachedData<any[]>(
-    'home_experts',
-    fetchExperts
-  );
-
-  const { data: newsData = [], loading: newsLoading, error: newsError } = useCachedData<any[]>(
-    'home_news',
-    fetchNews
+  const { data: homeData, loading: homeLoading, error: homeError } = useCachedData<any>(
+    'home_data',
+    fetchHome
   );
 
   // 当数据变化时更新状态
   useEffect(() => {
-    // Map Experts to Users - 添加空值检查
-    const mappedUsers = (expertsData || []).slice(0, 4).map((e: any) => ({
+    if (!homeData) return;
+
+    const { news: newsData = [], experts: expertsData = [], dailyTip: tipData } = homeData;
+
+    // Map Experts to Users
+    const mappedUsers = (expertsData || []).map((e: any) => ({
       id: String(e.id),
       name: e.name,
       title: e.title,
@@ -96,37 +89,34 @@ export default function Home() {
     }));
     setUsers(mappedUsers);
 
-    // Map News to Articles - 用 categoryId 匹配
+    // Map News to Articles
     const categoryIdMap: Record<number, ArticleCategory> = { 1: "science", 2: "frontiers", 3: "lectures" };
-    const mappedArticles = (newsData || []).map((n: any) => {
-      const category: ArticleCategory = categoryIdMap[n.categoryId] || "science";
-      return {
-        id: String(n.id),
-        title: n.title,
-        category: category,
-        image: getImageUrl(n.cover) || '',
-        date: n.date,
-        excerpt: n.content ? n.content.replace(/<[^>]+>/g, '').substring(0, 100) + "..." : n.title,
-        content: n.content,
-        author: n.author,
-        authorAvatar: getImageUrl(n.authorAvatar),
-        publishDate: n.date
-      };
-    });
+    const mappedArticles = (newsData || []).map((n: any) => ({
+      id: String(n.id),
+      title: n.title,
+      category: (categoryIdMap[n.categoryId] || "science") as ArticleCategory,
+      image: getImageUrl(n.cover) || '',
+      date: n.date,
+      excerpt: n.title,
+      content: '',
+      author: '',
+      authorAvatar: '',
+      publishDate: n.date
+    }));
     setArticles(mappedArticles);
 
-    // 更新加载和错误状态
-    setLoading(expertsLoading || newsLoading);
-    setError(newsError ? getApiErrorMessage(newsError) : null);
-  }, [expertsData, newsData, expertsLoading, newsLoading, newsError]);
+    // Daily tip
+    if (tipData) {
+      setDailyTip({ content: tipData.content, source: tipData.source || "向阳健康" });
+    }
+  }, [homeData]);
+
+  useEffect(() => { setLoading(homeLoading); setError(homeError ? getApiErrorMessage(homeError) : null); }, [homeLoading, homeError]);
 
   // 骨架屏最小显示时间控制
   useEffect(() => {
     if (!loading) {
-      // 延迟关闭骨架屏，确保至少显示 800ms
-      const timer = setTimeout(() => {
-        setShowSkeleton(false);
-      }, 800);
+      const timer = setTimeout(() => setShowSkeleton(false), 800);
       return () => clearTimeout(timer);
     } else {
       setShowSkeleton(true);
@@ -143,24 +133,6 @@ export default function Home() {
       import("./About");
     }
   }, [loading, showSkeleton]);
-
-  // 获取每日科普知识
-  useEffect(() => {
-    const fetchDailyTip = async () => {
-      try {
-        const res = await api.get('/daily-tip');
-        setDailyTip(res.data);
-      } catch (error) {
-        console.error('获取每日科普知识失败:', error);
-        // 使用默认文案
-        setDailyTip({
-          content: "每天坚持运动 30 分钟，可以有效降低心血管疾病风险，增强免疫力。",
-          source: "向阳健康"
-        });
-      }
-    };
-    fetchDailyTip();
-  }, []);
 
   // Filter logic - adapted to be more flexible or use specific category IDs/names if I knew them.
   // I'll just take slices for now to ensure display if categories don't match exact english keys.

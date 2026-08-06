@@ -155,6 +155,7 @@ const PUBLIC_GET_PREFIXES = [
   "/api/experts",
   "/api/products",
   "/api/daily-tip",
+  "/api/home",
   "/api/admins/by-username",
   "/api/admins/by-name",
 ];
@@ -281,6 +282,41 @@ app.get("/api/categories", async (req, res) => { res.json(await prisma.category.
 app.post("/api/categories", auth, async (req, res) => { try { res.json(await prisma.category.create({ data: req.body })); } catch { res.status(500).json({ error: "Failed to create" }); } });
 app.put("/api/categories/:id", auth, async (req, res) => { try { res.json(await prisma.category.update({ where: { id: Number(req.params.id) }, data: req.body })); } catch { res.status(500).json({ error: "Failed to update" }); } });
 app.delete("/api/categories/:id", auth, async (req, res) => { try { await prisma.category.delete({ where: { id: Number(req.params.id) } }); res.json({ success: true }); } catch { res.status(500).json({ error: "Failed to delete" }); } });
+
+// 首页组合接口：一次请求返回全部首页数据，减少 3 次 → 1 次网络往返
+app.get("/api/home", async (req, res) => {
+  try {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    const [news, experts, dailyTip] = await Promise.all([
+      prisma.news.findMany({
+        where: { isPublished: true },
+        select: { id: true, title: true, cover: true, date: true, categoryId: true, category: { select: { id: true, name: true } }, isPinned: true },
+        orderBy: [{ isPinned: "desc" }, { date: "desc" }],
+      }),
+      prisma.expert.findMany({
+        select: { id: true, name: true, title: true, avatar: true, achievements: true, introduction: true },
+        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+        take: 4,
+      }),
+      prisma.dailyTip.findFirst({
+        where: { date: { gte: today, lt: tomorrow }, isActive: true },
+        orderBy: { createdAt: "desc" },
+        select: { content: true, source: true },
+      }),
+    ]);
+    // daily-tip fallback
+    let tip = dailyTip;
+    if (!tip) {
+      const t = await getDailyTip();
+      tip = { content: t.content, source: t.source || "向阳健康" };
+    }
+    res.json({ news, experts, dailyTip: tip });
+  } catch (e: any) {
+    res.status(500).json({ error: "Home data error" });
+  }
+});
+
 app.get("/api/news", async (req, res) => {
   // 后台管理列表（?all=1 + 有效 token）返回全部（含草稿）；公开接口只返回已发布
   const isAdminList = req.query.all === "1" && tryAuth(req);

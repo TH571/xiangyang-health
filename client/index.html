@@ -47,10 +47,36 @@
     <!-- 预加载 Hero 背景图（LCP 关键资源） -->
     <link rel="preload" href="https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/hero-bg.webp" as="image" fetchpriority="high" />
     <!-- 使用系统字体栈，避免依赖外部字体服务 -->
+    <style>
+      /* 骨架屏 — React 加载前显示，消除白屏 */
+      #app-skeleton { min-height:100vh; background:linear-gradient(135deg,#fff7ed,white,#fffbeb); font-family:system-ui,-apple-system,sans-serif; }
+      #app-skeleton .sk-header { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; background:rgba(255,255,255,.8); backdrop-filter:blur(8px); border-bottom:1px solid #fed7aa; }
+      #app-skeleton .sk-logo { width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#f97316,#ea580c); }
+      #app-skeleton .sk-nav { display:flex;gap:20px; }
+      #app-skeleton .sk-nav span { width:48px;height:14px;border-radius:4px;background:#fed7aa; }
+      #app-skeleton .sk-hero { display:flex;align-items:center;justify-content:center; min-height:60vh; padding:40px 24px; text-align:center; flex-direction:column; gap:16px; }
+      #app-skeleton .sk-hero h1 { font-size:clamp(24px,5vw,48px); font-weight:700; color:#c2410c; margin:0; }
+      #app-skeleton .sk-hero p { font-size:16px; color:#78716c; max-width:480px; margin:0; }
+      #app-skeleton .sk-pulse { animation:sk-pulse 1.5s ease-in-out infinite; }
+      @keyframes sk-pulse { 0%,100% { opacity:1 } 50% { opacity:.5 } }
+      #root:not(:empty) + #app-skeleton,
+      body.react-loaded #app-skeleton { display:none; }
+    </style>
   </head>
 
   <body>
     <div id="root"></div>
+    <div id="app-skeleton">
+      <div class="sk-header sk-pulse">
+        <div class="sk-logo"></div>
+        <div class="sk-nav"><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="sk-hero">
+        <p class="sk-pulse" style="font-size:14px;color:#f97316;font-weight:600;">🏥 向阳健康知库</p>
+        <h1>以光为引 · 以知为翼</h1>
+        <p class="sk-pulse">守护浙工大人在健康之路上温暖前行</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 
