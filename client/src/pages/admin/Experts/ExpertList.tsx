@@ -153,7 +153,7 @@ export function ExpertEdit({ params }: { params?: { id?: string } }) {
             const url = await uploadFileDirect(file, "avatar");
             setFormData({ ...formData, avatar: url });
             toast.success("上传成功");
-        } catch { toast.error("上传失败"); }
+        } catch (err: any) { toast.error("上传失败: " + (err.message || "未知错误")); console.error(err); }
     };
 
     const modules = useMemo(() => ({

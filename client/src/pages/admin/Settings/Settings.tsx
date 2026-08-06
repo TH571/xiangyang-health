@@ -43,8 +43,9 @@ export function Settings() {
             setAvatar(url);
             toast.success("上传成功");
         } catch (error: any) {
-            console.error(error);
-            toast.error(error.response?.data?.error || "上传失败");
+            console.error("上传失败详情:", error);
+            const msg = error?.message || error?.response?.data?.error || "上传失败";
+            toast.error(msg);
         }
     };
 
