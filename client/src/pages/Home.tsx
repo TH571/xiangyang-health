@@ -10,9 +10,10 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { UserCard } from "@/components/UserCard";
 import { ArticleCard } from "@/components/ArticleCard";
+import ClockDisplay from "@/components/ClockDisplay";
 import { OrganicDivider } from "@/components/OrganicDivider";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, AlertCircle, Calendar } from "lucide-react";
+import { ArrowRight, Sparkles, AlertCircle } from "lucide-react";
 import { api, getImageUrl, getApiErrorMessage, getImageThumb } from "@/lib/api";
 import { OSS_BASE_URL } from "@/lib/config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -59,7 +60,6 @@ export default function Home() {
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dailyTip, setDailyTip] = useState<DailyTip | null>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
 
   // 使用 useCallback 包装 fetch 函数避免无限循环
   const fetchExperts = useCallback(async () => {
@@ -162,29 +162,6 @@ export default function Home() {
     fetchDailyTip();
   }, []);
 
-  // 更新时间
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // 格式化日期时间
-  const formatDateTime = (date: Date) => {
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const seconds = date.getSeconds().toString().padStart(2, '0');
-    return {
-      date: `${month}月${day}日`,
-      time: `${hours}:${minutes}:${seconds}`
-    };
-  };
-
-  const { date: dateStr, time: timeStr } = formatDateTime(currentTime);
-
   // Filter logic - adapted to be more flexible or use specific category IDs/names if I knew them.
   // I'll just take slices for now to ensure display if categories don't match exact english keys.
   // Ideally backend should return category "type" or "slug".
@@ -204,12 +181,11 @@ export default function Home() {
 
       {/* Hero Section */}
       <section
-        className="relative py-12 md:py-24 overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50"
+        className="relative py-12 md:py-24 overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50 bg-scroll md:bg-fixed"
         style={{
-          backgroundImage: `url(${OSS_BASE_URL}/images/hero-bg.webp)`,
+          backgroundImage: `url(${OSS_BASE_URL}/images/hero-bg.webp?x-oss-process=image/resize,w_1400,quality_75)`,
           backgroundSize: "cover",
           backgroundPosition: "center center",
-          backgroundAttachment: "fixed",
         }}
       >
         {/* Decorative Background Elements */}
@@ -290,12 +266,7 @@ export default function Home() {
                   decoding="async"
                   className="relative w-full h-full object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                 />
-                {/* Date and Time Display - Aligned with "开始探索" button */}
-                <div className="absolute -bottom-9 right-16 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-lg border border-orange-100">
-                  <Calendar className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm font-medium text-slate-700">{dateStr}</span>
-                  <span className="text-sm font-mono font-semibold text-orange-600">{timeStr}</span>
-                </div>
+                <ClockDisplay />
               </div>
             </div>
           </div>

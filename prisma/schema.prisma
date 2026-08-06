@@ -52,6 +52,7 @@ model News {
 
   @@index([categoryId])
   @@index([date])
+  @@index([isPublished, isPinned, date])
 }
 
 model Expert {
@@ -68,6 +69,9 @@ model Expert {
   isPinned     Boolean  @default(false) // 是否置顶
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([isPinned, createdAt])
 }
 
 model Product {
@@ -82,6 +86,9 @@ model Product {
   category    Category @relation(fields: [categoryId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([createdAt])
 }
 
 model DailyTip {
@@ -92,4 +99,6 @@ model DailyTip {
   isActive  Boolean  @default(true) // 是否激活
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([date, isActive])
 }

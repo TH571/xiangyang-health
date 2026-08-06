@@ -41,8 +41,11 @@
       }
     </script>
 
-    <!-- 预加载关键资源（与实际使用保持一致：Hero 背景图） -->
-    <link rel="preload" href="https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/hero-bg.webp" as="image" />
+    <!-- OSS 域名预连接：减少 TLS 握手延迟（~200ms） -->
+    <link rel="preconnect" href="https://xyjk-data.oss-cn-hangzhou.aliyuncs.com" />
+    <link rel="dns-prefetch" href="https://xyjk-data.oss-cn-hangzhou.aliyuncs.com" />
+    <!-- 预加载 Hero 背景图（LCP 关键资源） -->
+    <link rel="preload" href="https://xyjk-data.oss-cn-hangzhou.aliyuncs.com/images/hero-bg.webp" as="image" fetchpriority="high" />
     <!-- 使用系统字体栈，避免依赖外部字体服务 -->
   </head>
 

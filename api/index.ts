@@ -10,7 +10,9 @@ import sharp from "sharp";
 import axios from "axios";
 
 // ===== Prisma =====
-const prisma = new PrismaClient();
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+const prisma = globalForPrisma.prisma || new PrismaClient();
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 // ===== OSS =====
 let _ossClient: OSS | null = null;
@@ -159,7 +161,7 @@ const PUBLIC_GET_PREFIXES = [
 app.use((req, res, next) => {
   const isPublicGet = req.method === "GET" && PUBLIC_GET_PREFIXES.some(p => req.path === p || req.path.startsWith(`${p}/`));
   if (isPublicGet) {
-    res.set("Cache-Control", "public, s-maxage=60, max-age=10");
+    res.set("Cache-Control", "public, s-maxage=300, max-age=60");
   } else {
     res.set("Cache-Control", "no-store");
   }
@@ -183,6 +185,13 @@ const SCHEMA_MIGRATIONS = [
   `ALTER TABLE "News" ADD COLUMN IF NOT EXISTS "isPublished" BOOLEAN NOT NULL DEFAULT true`,
   `ALTER TABLE "News" ADD COLUMN IF NOT EXISTS "isPinned" BOOLEAN NOT NULL DEFAULT false`,
   `ALTER TABLE "Expert" ADD COLUMN IF NOT EXISTS "isPinned" BOOLEAN NOT NULL DEFAULT false`,
+  // 性能索引（CREATE INDEX IF NOT EXISTS，幂等）
+  `CREATE INDEX IF NOT EXISTS "News_isPublished_isPinned_date_idx" ON "News" ("isPublished", "isPinned", "date")`,
+  `CREATE INDEX IF NOT EXISTS "Expert_categoryId_idx" ON "Expert" ("categoryId")`,
+  `CREATE INDEX IF NOT EXISTS "Expert_isPinned_createdAt_idx" ON "Expert" ("isPinned", "createdAt")`,
+  `CREATE INDEX IF NOT EXISTS "Product_categoryId_idx" ON "Product" ("categoryId")`,
+  `CREATE INDEX IF NOT EXISTS "Product_createdAt_idx" ON "Product" ("createdAt")`,
+  `CREATE INDEX IF NOT EXISTS "DailyTip_date_isActive_idx" ON "DailyTip" ("date", "isActive")`,
 ];
 app.use(async (req, res, next) => {
   if (!schemaMigrated) {
