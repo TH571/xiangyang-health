@@ -161,7 +161,9 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                 toolbar.addHandler('image', () => {
                     const input = document.createElement('input');
                     input.setAttribute('type', 'file');
-                    input.click();
+                    input.setAttribute('accept', 'image/*');
+                    input.style.display = 'none';
+                    document.body.appendChild(input);
                     input.onchange = async () => {
                         const file = input.files ? input.files[0] : null;
                         if (file) {
@@ -179,7 +181,13 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                                 toast.error("图片上传失败: " + (error.message || "未知错误"));
                             }
                         }
+                        document.body.removeChild(input);
                     };
+                    // 兜底：用户取消选择时，focus 事件会在回到窗口时触发的清理
+                    window.addEventListener('focus', () => {
+                        setTimeout(() => { if (input.parentNode) document.body.removeChild(input); }, 500);
+                    }, { once: true });
+                    input.click();
                 });
             }
 
@@ -197,13 +205,15 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                     const input = document.createElement('input');
                     input.setAttribute('type', 'file');
                     input.setAttribute('accept', 'video/*');
-                    input.click();
+                    input.style.display = 'none';
+                    document.body.appendChild(input);
                     input.onchange = async () => {
                         const file = input.files ? input.files[0] : null;
                         if (file) {
                             // 检查文件大小（限制 500MB）
                             if (file.size > 500 * 1024 * 1024) {
                                 toast.error("视频文件不能超过 500MB");
+                                document.body.removeChild(input);
                                 return;
                             }
                             try {
@@ -220,7 +230,12 @@ export default function RichTextEditor({ value, onChange, onImageUpload, onVideo
                                 toast.error("视频上传失败");
                             }
                         }
+                        document.body.removeChild(input);
                     };
+                    window.addEventListener('focus', () => {
+                        setTimeout(() => { if (input.parentNode) document.body.removeChild(input); }, 500);
+                    }, { once: true });
+                    input.click();
                 } else {
                     // 输入视频链接
                     const url = prompt("请输入视频链接:\n\n支持格式：\n- MP4 直链\n- YouTube (youtube.com 或 youtu.be)\n- B 站 (bilibili.com)");

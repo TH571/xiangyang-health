@@ -6,8 +6,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { api, getImageThumb } from "@/lib/api";
-import { Image, File, Film, RefreshCw, ExternalLink, Copy, ChevronLeft, ChevronRight, FolderOpen, Trash2 } from "lucide-react";
+import { api, getImageThumb, uploadFileDirect } from "@/lib/api";
+import { Image, File, Film, RefreshCw, ExternalLink, Copy, ChevronLeft, ChevronRight, FolderOpen, Trash2, Upload, X, Loader2, ArrowUp, ArrowDown } from "lucide-react";
 
 interface MediaObject {
   key: string;
@@ -30,6 +30,38 @@ export function MediaList() {
   const [filterType, setFilterType] = useState("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
+  // 上传
+  const [uploadPrefix, setUploadPrefix] = useState("default");
+  const [uploadQueue, setUploadQueue] = useState<{ file: File; status: "pending" | "uploading" | "done" | "error"; error?: string; url?: string }[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  // 排序
+  const [sortBy, setSortBy] = useState<"name" | "size" | "date">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  // 上传前缀选项（对应 OSS 目录）
+  const uploadPrefixOptions = [
+    { value: "default", label: "default (通用)" },
+    { value: "news", label: "news (文章)" },
+    { value: "avatar", label: "avatar (头像)" },
+    { value: "product", label: "product (产品)" },
+  ];
+
+  const addFiles = useCallback((files: FileList | File[]) => {
+    const newFiles = Array.from(files).filter(f => f.size > 0);
+    if (newFiles.length === 0) return;
+    setUploadQueue(prev => [
+      ...prev,
+      ...newFiles.map(file => ({ file, status: "pending" as const })),
+    ]);
+  }, []);
+
+  const removeFromQueue = (i: number) => {
+    setUploadQueue(prev => prev.filter((_, j) => j !== i));
+  };
+
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = () => setIsDragging(false);
+  const handleDrop = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); addFiles(e.dataTransfer.files); };
 
   const fetchMedia = useCallback(async (p: string, m: string | null) => {
     setLoading(true);
@@ -42,13 +74,46 @@ export function MediaList() {
       setMarker(m);
       setSelected(new Set());
     } catch (e: any) {
-      toast.error("加载媒体文件失败: " + (e.message || "未知错误"));
+      const detail = e.response?.data?.detail || e.response?.data?.error || "";
+      const status = e.response?.status ? `(HTTP ${e.response.status})` : "";
+      toast.error(`加载媒体文件失败: ${e.message || "未知错误"}${status}${detail ? ` ${detail}` : ""}`);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { fetchMedia("", null); }, [fetchMedia]);
+
+  const startUploads = useCallback(async () => {
+    setUploadQueue(prev => prev.map(q => q.status === "pending" ? { ...q, status: "uploading" as const } : q));
+    
+    // 逐个上传（避免并发签名冲突）
+    const current = [...uploadQueue];
+    for (let i = 0; i < current.length; i++) {
+      if (current[i].status !== "pending") continue;
+      setUploadQueue(prev => prev.map((q, j) => j === i && q.status === "pending" ? { ...q, status: "uploading" as const } : q));
+      try {
+        const url = await uploadFileDirect(current[i].file, uploadPrefix);
+        setUploadQueue(prev => prev.map((q, j) => j === i ? { ...q, status: "done" as const, url } : q));
+      } catch (e: any) {
+        const msg = e.message || "上传失败";
+        setUploadQueue(prev => prev.map((q, j) => j === i ? { ...q, status: "error" as const, error: msg } : q));
+      }
+    }
+
+    // 全部完成后刷新列表 + toast
+    const final = [...uploadQueue];
+    const ok = final.filter(q => q.status === "done" || q.status === "pending").length;
+    const err = final.filter(q => q.status === "error").length;
+    if (ok > 0) {
+      fetchMedia(currentPrefix, marker);
+      toast.success(`上传完成: ${ok} 个成功${err > 0 ? `，${err} 个失败` : ""}`);
+    } else if (err > 0) {
+      toast.error(`上传失败: ${err} 个文件均失败`);
+    }
+    // 3 秒后清除队列
+    setTimeout(() => setUploadQueue([]), 3000);
+  }, [uploadQueue, uploadPrefix, currentPrefix, marker, fetchMedia]);
 
   const handleFilter = (p: string) => {
     setPrefix(p);
@@ -113,15 +178,41 @@ export function MediaList() {
     }
   };
 
-  const filtered = filterType === "all" ? objects : objects.filter(o => o.type === filterType);
+  // 键盘快捷键：Delete 键删除选中文件（输入框内不触发）
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (selected.size > 0 && !deleting) {
+          e.preventDefault();
+          handleDelete(Array.from(selected));
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selected, deleting]);
+
+  const filtered = (() => {
+    let list = filterType === "all" ? objects : objects.filter(o => o.type === filterType);
+    const key = sortBy === "name" ? "key" : sortBy === "size" ? "size" : "lastModified";
+    const dir = sortOrder === "asc" ? 1 : -1;
+    list = [...list].sort((a, b) => {
+      const av = a[key as keyof typeof a] || "";
+      const bv = b[key as keyof typeof a] || "";
+      if (typeof av === "string" && typeof bv === "string") return av.localeCompare(bv) * dir;
+      return (Number(av) - Number(bv)) * dir;
+    });
+    return list;
+  })();
   const imageTypes = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"];
   const videoTypes = ["mp4", "webm", "mov", "avi"];
   const allSelected = filtered.length > 0 && selected.size === filtered.length;
 
   const getIcon = (type: string) => {
-    if (imageTypes.includes(type)) return <Image className="w-5 h-5 text-blue-500" />;
-    if (videoTypes.includes(type)) return <Film className="w-5 h-5 text-purple-500" />;
-    return <File className="w-5 h-5 text-slate-500" />;
+    if (imageTypes.includes(type)) return <Image className="w-4 h-4 text-blue-500" />;
+    if (videoTypes.includes(type)) return <Film className="w-4 h-4 text-purple-500" />;
+    return <File className="w-4 h-4 text-slate-500" />;
   };
 
   const formatSize = (bytes: number) => {
@@ -146,7 +237,7 @@ export function MediaList() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold">媒体管理</h2>
-          <p className="text-sm text-slate-500 mt-1">浏览 OSS 上已上传的图片、视频和文件，支持勾选删除</p>
+          <p className="text-sm text-slate-500 mt-1">上传、浏览和管理 OSS 上的图片、视频和文件</p>
         </div>
         <div className="flex items-center gap-2">
           {selected.size > 0 && (
@@ -163,6 +254,65 @@ export function MediaList() {
             <RefreshCw className="w-4 h-4 mr-2" /> 刷新
           </Button>
         </div>
+      </div>
+
+      {/* Upload Zone */}
+      <div
+        className={`mb-6 border-2 border-dashed rounded-lg p-4 transition-colors ${isDragging ? "border-orange-500 bg-orange-50" : "border-slate-300 bg-slate-50 hover:border-slate-400"}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <div className="flex items-end gap-4 flex-wrap">
+          <div>
+            <div className="text-xs text-slate-500 mb-1">上传目录</div>
+            <Select value={uploadPrefix} onValueChange={setUploadPrefix}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {uploadPrefixOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <label className="flex-1 min-w-[200px] flex items-center justify-center gap-2 py-3 px-4 rounded-lg border border-slate-300 bg-white cursor-pointer hover:bg-slate-100 transition-colors text-sm text-slate-600">
+            <Upload className="w-4 h-4" />
+            <span>点击选择文件或拖拽到此处</span>
+            <input
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(e) => e.target.files && addFiles(e.target.files)}
+            />
+          </label>
+          {uploadQueue.some(q => q.status === "pending") && (
+            <Button size="sm" onClick={startUploads}>
+              上传 ({uploadQueue.filter(q => q.status === "pending").length})
+            </Button>
+          )}
+        </div>
+
+        {/* Upload Queue */}
+        {uploadQueue.length > 0 && (
+          <div className="mt-3 space-y-1.5">
+            {uploadQueue.map((q, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm p-1.5 rounded bg-white border border-slate-200">
+                {q.status === "uploading" ? <Loader2 className="w-4 h-4 text-blue-500 animate-spin" /> :
+                 q.status === "done"     ? <svg className="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 13l4 4L19 7" /></svg> :
+                 q.status === "error"    ? <X className="w-4 h-4 text-red-500" /> :
+                                           <File className="w-4 h-4 text-slate-400" />}
+                <span className="flex-1 truncate text-slate-700">{q.file.name}</span>
+                <span className="text-xs text-slate-400">
+                  {q.status === "pending" ? "等待中" :
+                   q.status === "uploading" ? "上传中…" :
+                   q.status === "done" ? "完成" :
+                   `失败: ${q.error}`}
+                </span>
+                {(q.status === "done" || q.status === "error") && (
+                  <button onClick={() => removeFromQueue(i)} className="p-0.5 hover:bg-slate-200 rounded"><X className="w-3 h-3" /></button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -183,6 +333,22 @@ export function MediaList() {
             {typeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
           </SelectContent>
         </Select>
+        <span className="text-xs text-slate-400 whitespace-nowrap">排序</span>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+          <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">文件名</SelectItem>
+            <SelectItem value="size">大小</SelectItem>
+            <SelectItem value="date">日期</SelectItem>
+          </SelectContent>
+        </Select>
+        <button
+          onClick={() => setSortOrder(o => o === "asc" ? "desc" : "asc")}
+          className="p-2 rounded border border-slate-300 bg-white hover:bg-slate-100 transition-colors text-slate-600"
+          title={sortOrder === "asc" ? "切换降序" : "切换升序"}
+        >
+          {sortOrder === "asc" ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+        </button>
         <Button variant="secondary" onClick={() => handleFilter(prefix)}>
           筛选
         </Button>
@@ -199,9 +365,9 @@ export function MediaList() {
       {/* Media Grid */}
       <div className="bg-white rounded-lg border shadow-sm">
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-6">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="aspect-square bg-slate-100 rounded-lg animate-pulse" />
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 p-3">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-slate-100 rounded animate-pulse" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -209,22 +375,22 @@ export function MediaList() {
         ) : (
           <>
             {/* Selection Bar */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-100 bg-slate-50">
-              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-slate-100 bg-slate-50">
+              <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={allSelected}
                   onChange={toggleSelectAll}
-                  className="w-4 h-4 accent-orange-600"
+                  className="w-3.5 h-3.5 accent-orange-600"
                 />
                 全选 ({filtered.length})
               </label>
               {selected.size > 0 && (
-                <span className="text-sm text-orange-600 font-medium">已选择 {selected.size} 个文件</span>
+                <span className="text-xs text-orange-600 font-medium">已选择 {selected.size} 个文件</span>
               )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-6">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 p-3">
               {filtered.map((obj) => {
                 const isSelected = selected.has(obj.key);
                 return (
@@ -234,15 +400,15 @@ export function MediaList() {
                     className={`group relative bg-slate-50 rounded-lg border overflow-hidden hover:shadow-md transition-all cursor-pointer ${isSelected ? "border-orange-500 ring-2 ring-orange-200" : "border-slate-200"}`}
                   >
                     {/* Checkbox */}
-                    <div className={`absolute top-2 left-2 z-10 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isSelected ? "bg-orange-600 border-orange-600" : "bg-white border-slate-300 group-hover:border-orange-400"}`}>
-                      {isSelected && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                    <div className={`absolute top-1.5 left-1.5 z-10 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${isSelected ? "bg-orange-600 border-orange-600" : "bg-white/90 border-slate-300 group-hover:border-orange-400"}`}>
+                      {isSelected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                     </div>
 
                     {/* Preview */}
                     <div className="aspect-square flex items-center justify-center bg-slate-100 overflow-hidden">
                       {imageTypes.includes(obj.type) ? (
                         <img
-                          src={getImageThumb(obj.url, 400)}
+                          src={getImageThumb(obj.url, 200)}
                           alt={obj.key}
                           className="w-full h-full object-cover"
                           loading="lazy"
@@ -252,37 +418,37 @@ export function MediaList() {
                           }}
                         />
                       ) : (
-                        <div className="flex flex-col items-center gap-2 text-slate-400">
+                        <div className="flex flex-col items-center gap-1 text-slate-400">
                           {getIcon(obj.type)}
-                          <span className="text-xs font-mono">.{obj.type}</span>
+                          <span className="text-[10px] font-mono">.{obj.type}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Overlay Actions */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
                       {imageTypes.includes(obj.type) && (
                         <a href={obj.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
-                          className="p-2 bg-white rounded-full hover:bg-orange-100 transition-colors">
-                          <ExternalLink className="w-4 h-4 text-slate-700" />
+                          className="p-1.5 bg-white rounded-full hover:bg-orange-100 transition-colors">
+                          <ExternalLink className="w-3.5 h-3.5 text-slate-700" />
                         </a>
                       )}
                       <button onClick={(e) => { e.stopPropagation(); handleCopyUrl(obj.url); }}
-                        className="p-2 bg-white rounded-full hover:bg-orange-100 transition-colors">
-                        <Copy className="w-4 h-4 text-slate-700" />
+                        className="p-1.5 bg-white rounded-full hover:bg-orange-100 transition-colors">
+                        <Copy className="w-3.5 h-3.5 text-slate-700" />
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); handleDelete([obj.key]); }}
-                        className="p-2 bg-white rounded-full hover:bg-red-100 transition-colors">
-                        <Trash2 className="w-4 h-4 text-red-600" />
+                        className="p-1.5 bg-white rounded-full hover:bg-red-100 transition-colors">
+                        <Trash2 className="w-3.5 h-3.5 text-red-600" />
                       </button>
                     </div>
 
                     {/* Info */}
-                    <div className="p-2">
-                      <div className="text-xs text-slate-700 truncate" title={obj.key.split("/").pop()}>
+                    <div className="p-1.5">
+                      <div className="text-[10px] text-slate-600 truncate leading-tight" title={obj.key.split("/").pop()}>
                         {obj.key.split("/").pop()}
                       </div>
-                      <div className="text-xs text-slate-400">{formatSize(obj.size)}</div>
+                      <div className="text-[10px] text-slate-400">{formatSize(obj.size)}</div>
                     </div>
                   </div>
                 );
@@ -290,8 +456,8 @@ export function MediaList() {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
-              <div className="text-sm text-slate-500">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
+              <div className="text-xs text-slate-500">
                 共 {filtered.length} 个文件
                 {isTruncated && " (还有更多)"}
               </div>

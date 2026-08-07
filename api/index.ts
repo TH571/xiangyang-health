@@ -414,11 +414,14 @@ app.delete("/api/daily-tips/:id", auth, async (req, res) => { try { await prisma
 
 // OSS 文件列表
 app.get("/api/media", auth, async (req, res) => {
+  const t0 = Date.now();
   try {
     const prefix = (req.query.prefix as string) || "";
     const marker = (req.query.marker as string) || "";
     const maxKeys = Math.min(Number(req.query.maxKeys) || 50, 200);
-    const result = await getOSS().list({ prefix, marker, "max-keys": maxKeys }, {});
+    // 显式 8s 超时：OSS 不可达时快速失败并给出明确错误，避免挂到函数 60s 上限
+    const result = await getOSS().list({ prefix, marker, "max-keys": maxKeys }, { timeout: 8000 });
+    console.log(`[media] list OK in ${Date.now() - t0}ms, objects=${(result.objects || []).length}, truncated=${result.isTruncated}`);
     res.json({
       objects: (result.objects || []).map((o: any) => ({
         key: o.name,
@@ -431,7 +434,12 @@ app.get("/api/media", auth, async (req, res) => {
       nextMarker: result.nextMarker || null,
       isTruncated: result.isTruncated,
     });
-  } catch (e: any) { res.status(500).json({ error: "Failed to list media", detail: e.message }); }
+  } catch (e: any) {
+    console.error(`[media] list FAILED after ${Date.now() - t0}ms:`, e.code || "", e.name || "", e.message || "", e.status ? `HTTP ${e.status}` : "");
+    // 连接异常时重置客户端：避免 keep-alive 卡死连接被持续复用（表现为每次都超时）
+    _ossClient = null;
+    res.status(500).json({ error: "Failed to list media", detail: `${e.code || e.name || ""} ${e.message || ""}`.trim() });
+  }
 });
 
 // 删除 OSS 文件（支持单个或批量）——先检查引用，被文章/专家/产品引用的文件不删除
@@ -482,11 +490,15 @@ app.post("/api/media/delete", auth, async (req, res) => {
 
     let deleted = 0;
     if (deletable.length > 0) {
-      await getOSS().deleteMulti(deletable);
+      await getOSS().deleteMulti(deletable, { timeout: 8000 });
       deleted = deletable.length;
     }
     res.json({ success: true, deleted, blocked });
-  } catch (e: any) { res.status(500).json({ error: "Failed to delete media", detail: e.message }); }
+  } catch (e: any) {
+    console.error("[media] delete FAILED:", e.code || "", e.name || "", e.message || "");
+    _ossClient = null; // 连接异常时重置客户端，避免卡死连接被持续复用
+    res.status(500).json({ error: "Failed to delete media", detail: e.message });
+  }
 });
 
 export default app;
