@@ -13,7 +13,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import { OrganicDivider } from "@/components/OrganicDivider";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, AlertCircle, RefreshCw } from "lucide-react";
+import { ArrowRight, Sparkles, AlertCircle } from "lucide-react";
 import { api, getImageUrl, getApiErrorMessage, getImageThumb } from "@/lib/api";
 import { OSS_BASE_URL } from "@/lib/config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -288,7 +288,7 @@ export default function Home() {
             title="点击换一条科普知识"
           >
             <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
-              <RefreshCw
+              <Sparkles
                 className={`w-6 h-6 md:w-8 md:h-8 transition-transform ${refreshingTip ? "animate-spin" : "group-hover:rotate-180"}`}
               />
             </div>
