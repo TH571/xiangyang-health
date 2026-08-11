@@ -440,6 +440,25 @@ export function createApp() {
     } catch (e) { res.status(500).json({ error: "Failed to update profile" }); }
   });
 
+  // 随机一条激活贴士（首页"每日一条科普知识"点击刷新用），exclude 用于避免重复当前内容
+  app.get("/api/daily-tip/random", async (req, res) => {
+    try {
+      const exclude = String(req.query.exclude || "").trim();
+      const tips = await prisma.dailyTip.findMany({ where: { isActive: true }, select: { content: true, source: true } });
+      let pool = tips;
+      if (exclude) {
+        const filtered = tips.filter(t => t.content !== exclude);
+        if (filtered.length > 0) pool = filtered;
+      }
+      if (pool.length === 0) return res.status(404).json({ error: "No active tips" });
+      const tip = pool[Math.floor(Math.random() * pool.length)];
+      res.set("Cache-Control", "no-store");
+      res.json({ content: tip.content, source: tip.source || "向阳健康" });
+    } catch (e) {
+      res.status(500).json({ error: "Failed to fetch random daily tip" });
+    }
+  });
+
   // Daily Tip
   app.get("/api/daily-tip", async (req, res) => {
     try {

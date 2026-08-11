@@ -13,7 +13,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import ClockDisplay from "@/components/ClockDisplay";
 import { OrganicDivider } from "@/components/OrganicDivider";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, AlertCircle } from "lucide-react";
+import { ArrowRight, AlertCircle, RefreshCw } from "lucide-react";
 import { api, getImageUrl, getApiErrorMessage, getImageThumb } from "@/lib/api";
 import { OSS_BASE_URL } from "@/lib/config";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -60,6 +60,23 @@ export default function Home() {
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dailyTip, setDailyTip] = useState<DailyTip | null>(null);
+  const [refreshingTip, setRefreshingTip] = useState(false);
+
+  // 点击"每日一条科普知识"板块时，随机刷新一条健康贴士
+  const handleTipRefresh = useCallback(async () => {
+    if (refreshingTip) return;
+    setRefreshingTip(true);
+    try {
+      const res = await api.get("/daily-tip/random", {
+        params: dailyTip?.content ? { exclude: dailyTip.content } : {},
+      });
+      setDailyTip({ content: res.data.content, source: res.data.source || "向阳健康" });
+    } catch (e) {
+      console.error("刷新健康贴士失败:", e);
+    } finally {
+      setRefreshingTip(false);
+    }
+  }, [refreshingTip, dailyTip]);
 
   // 首页组合请求：一次 API 调用替代 3 次（news + experts + daily-tip）
   const fetchHome = useCallback(async () => {
@@ -263,13 +280,24 @@ export default function Home() {
         </div>
 
         <div className="container relative z-10">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-center">
+          <div
+            className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-center cursor-pointer select-none group"
+            onClick={handleTipRefresh}
+            role="button"
+            aria-label="点击刷新一条健康贴士"
+            title="点击换一条科普知识"
+          >
             <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
-              <Sparkles className="w-6 h-6 md:w-8 md:h-8" />
+              <RefreshCw
+                className={`w-6 h-6 md:w-8 md:h-8 transition-transform ${refreshingTip ? "animate-spin" : "group-hover:rotate-180"}`}
+              />
             </div>
             <div className="space-y-1">
               <h3 className="text-lg md:text-xl font-semibold tracking-wide">
                 每日一条科普知识
+                <span className="ml-2 text-xs font-normal text-orange-100/80 align-middle">
+                  {refreshingTip ? "换一条中..." : "点击换一条"}
+                </span>
               </h3>
               <p className="text-orange-100 text-base md:text-lg max-w-2xl">
                 {dailyTip ? dailyTip.content : "加载中..."}
