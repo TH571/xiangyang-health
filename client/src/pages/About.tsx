@@ -10,40 +10,6 @@ import { SimpleDivider } from '@/components/OrganicDivider';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Mail, MapPin, Users, Target, Lightbulb } from 'lucide-react';
 
-interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-  bio: string;
-}
-
-const teamMembers: TeamMember[] = [
-  {
-    id: '1',
-    name: '孙培龙',
-    role: '',
-    bio: '浙工大龙游研究院院长'
-  },
-  {
-    id: '2',
-    name: '张华',
-    role: '',
-    bio: '浙工大84届生工校友，情绪健康领域专家'
-  },
-  {
-    id: '3',
-    name: '葛铁汉',
-    role: '',
-    bio: '浙工大校友，健康管理师'
-  },
-  {
-    id: '4',
-    name: '崔妤頔',
-    role: '',
-    bio: '浙工大校友，大健康领域法律专家'
-  }
-];
-
 export function AboutPage() {
   const [, navigate] = useLocation();
 
@@ -112,31 +78,6 @@ export function AboutPage() {
                 专业、诚信、关怀。我们承诺提供最准确的信息、最真诚的服务和最温暖的陪伴。
               </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Team Section */}
-      <section className="py-16 bg-white">
-        <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-12 text-center">
-            我们的团队
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {teamMembers.map((member) => (
-              <div
-                key={member.id}
-                className="text-center rounded-lg overflow-hidden bg-gradient-to-b from-orange-50 to-white p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-orange-200 bg-orange-100 flex items-center justify-center">
-                  <span className="text-3xl font-bold text-orange-600">{member.name.charAt(0)}</span>
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-1">{member.name}</h3>
-                {member.role && <p className="text-orange-600 font-semibold text-sm mb-3">{member.role}</p>}
-                <p className="text-slate-600 text-sm">{member.bio}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
