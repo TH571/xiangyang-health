@@ -15,6 +15,7 @@ const HealthLectures = lazy(() => import("./pages/CategoryList").then(m => ({ de
 const HealthScience = lazy(() => import("./pages/CategoryList").then(m => ({ default: m.HealthScience })));
 const ArticleDetailPage = lazy(() => import("./pages/ArticleDetail").then(m => ({ default: m.ArticleDetailPage })));
 const HealthWorkersPage = lazy(() => import("./pages/HealthWorkers").then(m => ({ default: m.HealthWorkersPage })));
+const ExpertDetailPage = lazy(() => import("./pages/ExpertDetail").then(m => ({ default: m.ExpertDetailPage })));
 const SelectionPage = lazy(() => import("./pages/Selection").then(m => ({ default: m.SelectionPage })));
 const AboutPage = lazy(() => import("./pages/About").then(m => ({ default: m.AboutPage })));
 const PrivacyPage = lazy(() => import("./pages/Privacy").then(m => ({ default: m.PrivacyPage })));
@@ -90,6 +91,11 @@ function Router() {
       <Route path="/workers" component={() => (
         <Suspense fallback={<PageLoader />}>
           <HealthWorkersPage />
+        </Suspense>
+      )} />
+      <Route path="/expert/:id" component={({ params }) => (
+        <Suspense fallback={<PageLoader />}>
+          <ExpertDetailPage id={params.id} />
         </Suspense>
       )} />
       <Route path="/selection" component={() => (

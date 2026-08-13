@@ -30,7 +30,6 @@ export function HealthWorkersPage() {
   const [filteredExperts, setFilteredExperts] = useState<Expert[]>([]);
   const [categories, setCategories] = useState<string[]>(['全部']);
   const [selectedSpecialty, setSelectedSpecialty] = useState('全部');
-  const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
 
   // 使用 useCallback 包装 fetch 函数避免无限循环
   const fetchExperts = useCallback(async () => {
@@ -143,7 +142,7 @@ export function HealthWorkersPage() {
             {filteredExperts.map((expert) => (
               <div
                 key={expert.id}
-                onClick={() => setSelectedExpert(expert)}
+                onClick={() => navigate(`/expert/${expert.id}`)}
                 className="group relative bg-white rounded-xl border border-slate-200 p-6 flex flex-col sm:flex-row gap-6 cursor-pointer hover:border-blue-500/30 hover:shadow-md transition-all duration-300"
               >
                 {/* Avatar */}
@@ -207,68 +206,6 @@ export function HealthWorkersPage() {
           </div>
         </div>
       </section>
-
-      {/* Expert Detail Modal */}
-      {selectedExpert && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="relative">
-              <button
-                onClick={() => setSelectedExpert(null)}
-                className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-slate-100 text-slate-500 rounded-full transition-colors z-10"
-              >
-                ✕
-              </button>
-
-              <div className="p-8 pb-0 flex flex-col md:flex-row gap-6">
-                <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg bg-slate-50 overflow-hidden">
-                  {getImageUrl(selectedExpert.avatar) ? (
-                    <img
-                      src={getImageThumb(selectedExpert.avatar, 400)}
-                      alt={selectedExpert.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <AvatarPlaceholder size={128} />
-                  )}
-                </div>
-                <div className="pt-2">
-                  <h2 className="text-3xl font-bold text-slate-900 mb-2">{selectedExpert.name}</h2>
-                  <div className="flex flex-wrap items-center gap-3 text-slate-600 mb-4">
-                    <span className="font-medium text-slate-900">{selectedExpert.title}</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                    <span>{selectedExpert.specialty}</span>
-                  </div>
-                  <p className="text-slate-500 text-sm leading-relaxed max-w-xl">
-                    {selectedExpert.experience}
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-8 space-y-8">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">关于专家</h3>
-                  <div className="prose prose-sm max-w-none text-slate-600 leading-7" dangerouslySetInnerHTML={{ __html: selectedExpert.introduction }} />
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">擅长领域</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedExpert.expertise.map((skill) => (
-                      <span
-                        key={skill}
-                        className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg shadow-sm"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>

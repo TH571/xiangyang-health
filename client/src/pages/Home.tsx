@@ -347,7 +347,8 @@ export default function Home() {
               {users.map(user => (
                 <div
                   key={user.id}
-                  className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 hover:bg-slate-700/50 hover:shadow-2xl hover:shadow-orange-900/20 transition-all duration-300 hover:-translate-y-1"
+                  onClick={() => navigate(`/expert/${user.id}`)}
+                  className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 hover:bg-slate-700/50 hover:shadow-2xl hover:shadow-orange-900/20 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
                 >
                   <UserCard user={user} />
                 </div>
