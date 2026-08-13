@@ -77,11 +77,11 @@ function Router() {
           <HealthLectures />
         </Suspense>
       )} />
-      <Route path="/science" component={() => (
-        <Suspense fallback={<PageLoader />}>
-          <HealthScience />
-        </Suspense>
-      )} />
+      {/* <Route path="/science" component={() => ( */}
+      {/*   <Suspense fallback={<PageLoader />}> */}
+      {/*     <HealthScience /> */}
+      {/*   </Suspense> */}
+      {/* )} /> */}
       <Route path="/article/:id" component={({ params }) => (
         <Suspense fallback={<PageLoader />}>
           <ArticleDetailPage id={params.id} />

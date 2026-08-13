@@ -483,8 +483,8 @@ export default function Home() {
         <OrganicDivider variant="swoosh" color="#2C3E50" className="mt-16" />
       </section>
 
-      {/* Health Science */}
-      <section className="pt-0 pb-20 bg-white">
+      {/* Health Science（健康科普页面已隐藏，需要时取消注释即可恢复） */}
+      {/* <section className="pt-0 pb-20 bg-white">
         <div className="container">
           <div className="mb-12">
             <div className="inline-block px-4 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold mb-4">
@@ -537,7 +537,7 @@ export default function Home() {
             </Button>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <Footer />
     </div>

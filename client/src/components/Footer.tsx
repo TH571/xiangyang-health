@@ -99,12 +99,12 @@ export function Footer() {
                 >
                   <span className="text-xs font-bold text-gray-400">讲堂</span>
                 </button>
-                <button
+                {/* <button
                   onClick={() => navigate("/science")}
                   className="w-9 h-9 md:w-11 md:h-11 rounded-xl bg-gray-800 hover:bg-orange-600 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-orange-600/25"
                 >
                   <span className="text-xs font-bold text-gray-400">科普</span>
-                </button>
+                </button> */}
                 <button
                   onClick={() => navigate("/workers")}
                   className="w-9 h-9 md:w-11 md:h-11 rounded-xl bg-gray-800 hover:bg-orange-600 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-orange-600/25"

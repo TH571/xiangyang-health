@@ -18,7 +18,7 @@ const navItems = [
   { label: "向阳优品", href: "/selection" },
   { label: "健康讲堂", href: "/lectures" },
   { label: "健康NEWS", href: "/frontiers" },
-  { label: "健康科普", href: "/science" },
+  // { label: "健康科普", href: "/science" }, // 健康科普页面已隐藏，需要时取消注释
   { label: "关于我们", href: "/about" },
 ];
 
