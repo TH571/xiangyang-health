@@ -27,7 +27,7 @@ const categoryConfig = {
     color: 'from-orange-600 to-red-600'
   },
   lectures: {
-    name: '健康讲堂',
+    name: '健康大讲堂',
     description: '专业讲座和健康教育',
     color: 'from-blue-600 to-purple-600'
   },
@@ -60,7 +60,7 @@ export function CategoryListPage({ category }: CategoryListProps) {
 
   const categoryIdMap: Record<string, number> = {
     frontiers: 2,   // 健康NEWS
-    lectures: 3,    // 健康讲堂
+    lectures: 3,    // 健康大讲堂
     science: 1,     // 健康科普
   };
   const targetCategoryId = categoryIdMap[category];

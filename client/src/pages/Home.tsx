@@ -433,7 +433,7 @@ export default function Home() {
               专业讲座
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-4 tracking-tight">
-              健康讲堂
+              健康大讲堂
             </h2>
             <p className="text-slate-600 max-w-2xl text-lg leading-relaxed">
               专业讲座和健康教育，由专家为您解答健康疑惑

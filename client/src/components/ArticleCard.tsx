@@ -38,7 +38,7 @@ export function ArticleCard({ article, onClick }: ArticleCardProps) {
         <div className="absolute top-4 left-4">
           <span className="inline-block px-3 py-1.5 text-xs font-bold text-white bg-orange-600/90 backdrop-blur-sm rounded-lg shadow-lg">
             {article.category === "frontiers" && "健康NEWS"}
-            {article.category === "lectures" && "健康讲堂"}
+            {article.category === "lectures" && "健康大讲堂"}
             {article.category === "science" && "健康科普"}
           </span>
         </div>
@@ -50,7 +50,7 @@ export function ArticleCard({ article, onClick }: ArticleCardProps) {
         <div className="mb-3 md:hidden">
           <span className="inline-block px-3 py-1 text-xs font-semibold text-orange-600 bg-orange-50 rounded-full">
             {article.category === "frontiers" && "健康NEWS"}
-            {article.category === "lectures" && "健康讲堂"}
+            {article.category === "lectures" && "健康大讲堂"}
             {article.category === "science" && "健康科普"}
           </span>
         </div>
